@@ -1,0 +1,32 @@
+{
+  "name": "konga-sensei-typing-game",
+  "version": "1.0.0",
+  "description": "コンガ先生のレジ打ち修行 - タイピングゲーム",
+  "main": "index.html",
+  "scripts": {
+    "dev": "http-server . -p 3000 -o",
+    "build": "echo 'No build step required'",
+    "start": "http-server . -p 3000"
+  },
+  "keywords": [
+    "typing",
+    "game",
+    "japanese",
+    "register",
+    "konga",
+    "practice"
+  ],
+  "author": "Claude Code Assistant",
+  "license": "MIT",
+  "devDependencies": {
+    "http-server": "^14.1.1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/username/konga-sensei-typing-game.git"
+  },
+  "homepage": ".",
+  "engines": {
+    "node": ">=14.0.0"
+  }
+}

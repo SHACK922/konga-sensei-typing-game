@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>コンガ先生のレジ打ち修行</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- 背景GIFアニメーション -->
+    <div class="background-animation">
+        <div class="gif-layer gif1"></div>
+        <div class="gif-layer gif2"></div>
+        <div class="gif-layer gif3"></div>
+        <div class="gif-layer gif4"></div>
+    </div>
+
+    <!-- ローディング画面 -->
+    <div id="loading-screen" class="screen">
+        <div class="loading-container">
+            <div class="loading-spinner">
+                <div class="spinner-ring"></div>
+                <div class="spinner-ring"></div>
+                <div class="spinner-ring"></div>
+            </div>
+            <div class="loading-text">読み込み中...</div>
+            <div class="loading-dots">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+        
+        <!-- ロゴカットイン演出 -->
+        <div class="logo-animation">
+            <img src="image/カットインサブ.png" alt="カットインサブ" class="cutin-sub">
+            <img src="image/カットインメイン.png" alt="カットインメイン" class="cutin-main">
+        </div>
+    </div>
+
+    <!-- タイトル画面 -->
+    <div id="title-screen" class="screen hidden">
+        <!-- メインロゴを常駐表示 -->
+        <div class="persistent-logo">
+            <img src="image/メインロゴ.png" alt="メインロゴ" class="title-main-logo">
+        </div>
+        
+        <div class="title-container">
+            <div class="title-subtitle">タイピングでレジ打ちの達人を目指そう</div>
+            <button id="start-button" class="btn primary">
+                <span class="btn-icon">🎯</span>
+                <span class="btn-text">修行開始</span>
+                <div class="btn-shine"></div>
+            </button>
+        </div>
+    </div>
+
+    <!-- ゲーム画面 -->
+    <div id="game-screen" class="screen hidden">
+        <div class="game-container">
+            <div class="game-header">
+                <div class="timer-display">
+                    <span class="timer-label">残り時間</span>
+                    <span id="timer">60</span>秒
+                </div>
+                <div class="score-display">
+                    <span class="score-label">スコア</span>
+                    <span id="score">0</span>
+                </div>
+                <div class="mistakes-display">
+                    <span class="mistakes-label">ミス</span>
+                    <span id="mistakes">0</span>
+                </div>
+            </div>
+
+            <div class="typing-area">
+                <div class="instructor-message">
+                    <div class="instructor-name">コンガ先生</div>
+                    <div class="instructor-text">以下の商品を正確に入力してください</div>
+                </div>
+                
+                <div class="product-display">
+                    <div class="product-name">
+                        <span class="product-label">商品名:</span>
+                        <span id="current-product" class="product-text">みかん</span>
+                    </div>
+                    <div class="product-price">
+                        <span class="price-label">金額:</span>
+                        <span id="current-price" class="price-text">150</span>円
+                    </div>
+                </div>
+
+                <div class="input-area">
+                    <input type="text" id="typing-input" placeholder="商品名を入力してEnterキー" autocomplete="off" spellcheck="false">
+                    <div class="input-feedback">
+                        <div id="typed-text" class="typed-text"></div>
+                        <div id="remaining-text" class="remaining-text"></div>
+                    </div>
+                </div>
+
+                <div class="progress-indicator">
+                    <div class="progress-text">次: 金額を入力</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 結果画面 -->
+    <div id="result-screen" class="screen hidden">
+        <div class="result-container">
+            <h2 class="result-title">今回の修行結果</h2>
+            
+            <div class="result-stats">
+                <div class="stat-item">
+                    <span class="stat-label">最終スコア</span>
+                    <span id="final-score" class="stat-value">0</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">正確な入力数</span>
+                    <span id="correct-count" class="stat-value">0</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">ミスタイプ数</span>
+                    <span id="final-mistakes" class="stat-value">0</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">正確率</span>
+                    <span id="accuracy" class="stat-value">0%</span>
+                </div>
+            </div>
+
+            <div class="result-message">
+                <div id="result-comment" class="comment-text">お疲れ様でした！</div>
+            </div>
+
+            <button id="retry-button" class="btn primary">もう一度修行する</button>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

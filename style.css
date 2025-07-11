@@ -1,0 +1,748 @@
+/* 基本設定 */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Comfortaa:wght@300;400;700&display=swap');
+
+body {
+    font-family: 'Nunito', 'Hiragino Sans', 'Yu Gothic UI', sans-serif;
+    background: linear-gradient(135deg, #f4f1e8 0%, #e8dcc0 100%);
+    min-height: 100vh;
+    color: #2c1810;
+    overflow: hidden;
+    position: relative;
+}
+
+/* 背景GIFアニメーション */
+.background-animation {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -1;
+    opacity: 0.3;
+    pointer-events: none;
+}
+
+.gif-layer {
+    position: absolute;
+    width: 100vw;
+    height: 100vh;
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: center;
+    opacity: 0;
+    animation: gifSequence 20s ease-in-out infinite;
+}
+
+.gif1 {
+    background-image: url('image/1_6.gif');
+    animation-delay: 0s;
+}
+
+.gif2 {
+    background-image: url('image/1_7.gif');
+    animation-delay: 5s;
+}
+
+.gif3 {
+    background-image: url('image/1_8.gif');
+    animation-delay: 10s;
+}
+
+.gif4 {
+    background-image: url('image/1_9.gif');
+    animation-delay: 15s;
+}
+
+@keyframes gifSequence {
+    0%, 20% { 
+        opacity: 0.4;
+        transform: scale(1);
+    }
+    10% { 
+        opacity: 0.6;
+        transform: scale(1.05);
+    }
+    25%, 100% { 
+        opacity: 0;
+        transform: scale(1);
+    }
+}
+
+/* ローディング画面 */
+#loading-screen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, #ff6b9d 0%, #ffa726 50%, #42a5f5 100%);
+    z-index: 1000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    animation: loadingBackground 3s ease-in-out infinite;
+}
+
+@keyframes loadingBackground {
+    0%, 100% { background: linear-gradient(135deg, #ff6b9d 0%, #ffa726 50%, #42a5f5 100%); }
+    50% { background: linear-gradient(135deg, #42a5f5 0%, #ff6b9d 50%, #ffa726 100%); }
+}
+
+.loading-container {
+    text-align: center;
+    color: white;
+    opacity: 1;
+    animation: loadingFadeOut 0.5s ease-out 2s forwards;
+}
+
+@keyframes loadingFadeOut {
+    0% {
+        opacity: 1;
+    }
+    100% {
+        opacity: 0;
+    }
+}
+
+.loading-spinner {
+    position: relative;
+    width: 100px;
+    height: 100px;
+    margin: 0 auto 30px;
+}
+
+.spinner-ring {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border: 4px solid transparent;
+    border-top: 4px solid #fff;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+.spinner-ring:nth-child(2) {
+    animation-delay: 0.3s;
+    border-top-color: #ffa726;
+    width: 80%;
+    height: 80%;
+    top: 10%;
+    left: 10%;
+}
+
+.spinner-ring:nth-child(3) {
+    animation-delay: 0.6s;
+    border-top-color: #42a5f5;
+    width: 60%;
+    height: 60%;
+    top: 20%;
+    left: 20%;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.loading-text {
+    font-size: 1.5rem;
+    font-weight: bold;
+    margin-bottom: 20px;
+    animation: pulse 1.5s ease-in-out infinite;
+}
+
+.loading-dots {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+}
+
+.loading-dots span {
+    width: 12px;
+    height: 12px;
+    background: white;
+    border-radius: 50%;
+    animation: bounce 1.4s ease-in-out infinite both;
+}
+
+.loading-dots span:nth-child(1) { animation-delay: -0.32s; }
+.loading-dots span:nth-child(2) { animation-delay: -0.16s; }
+
+@keyframes bounce {
+    0%, 80%, 100% { 
+        transform: scale(0);
+        opacity: 0.5;
+    } 
+    40% { 
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+
+/* ロゴアニメーション */
+.logo-animation {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+}
+
+/* カットインサブ（白っぽいフェード演出） */
+.cutin-sub {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    max-width: 90vw;
+    max-height: 50vh;
+    opacity: 0;
+    animation: cutinSubFade 2s ease-in-out 2s forwards;
+    z-index: 15;
+}
+
+@keyframes cutinSubFade {
+    0% {
+        opacity: 0;
+        filter: brightness(3) blur(5px);
+        transform: translate(-50%, -50%) scale(0.8);
+    }
+    30% {
+        opacity: 0.8;
+        filter: brightness(1.5) blur(2px);
+        transform: translate(-50%, -50%) scale(1);
+    }
+    70% {
+        opacity: 0.9;
+        filter: brightness(1.2) blur(1px);
+        transform: translate(-50%, -50%) scale(1);
+    }
+    100% {
+        opacity: 0;
+        filter: brightness(2) blur(3px);
+        transform: translate(-50%, -50%) scale(1.1);
+    }
+}
+
+/* カットインメイン（ポップなドドンと演出） */
+.cutin-main {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0);
+    width: 100vw;
+    height: 100vh;
+    object-fit: contain;
+    opacity: 0;
+    animation: cutinMainPop 2.5s cubic-bezier(0.68, -0.55, 0.265, 1.55) 4s forwards;
+    z-index: 20;
+}
+
+@keyframes cutinMainPop {
+    0% {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(0) rotate(-20deg);
+        filter: brightness(2) saturate(2);
+    }
+    15% {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1.2) rotate(5deg);
+        filter: brightness(1.5) saturate(1.5);
+    }
+    25% {
+        transform: translate(-50%, -50%) scale(0.95) rotate(-2deg);
+        filter: brightness(1.2) saturate(1.2);
+    }
+    35% {
+        transform: translate(-50%, -50%) scale(1.05) rotate(1deg);
+        filter: brightness(1.1) saturate(1.1);
+    }
+    50% {
+        transform: translate(-50%, -50%) scale(1) rotate(0deg);
+        filter: brightness(1) saturate(1);
+    }
+    85% {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1) rotate(0deg);
+        filter: brightness(1) saturate(1);
+    }
+    100% {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(1.1) rotate(0deg);
+        filter: brightness(1.3) saturate(1.3);
+    }
+}
+
+
+/* 画面共通 */
+.screen {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    padding: 10px;
+    position: relative;
+    z-index: 1;
+    width: 100vw;
+}
+
+.hidden {
+    display: none !important;
+}
+
+/* ボタン共通スタイル */
+.btn {
+    border: none;
+    border-radius: 20px;
+    padding: 20px 40px;
+    font-size: 20px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    font-family: 'Comfortaa', sans-serif;
+    position: relative;
+    overflow: hidden;
+    letter-spacing: 1px;
+}
+
+.btn.primary {
+    background: linear-gradient(45deg, #ff6b9d, #ffa726, #42a5f5, #ab47bc);
+    background-size: 300% 300%;
+    color: #fff;
+    border: 3px solid rgba(255, 255, 255, 0.3);
+    box-shadow: 0 8px 25px rgba(255, 107, 157, 0.4);
+    animation: gradientShift 3s ease infinite;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    min-width: 250px;
+    opacity: 0;
+    animation: buttonFadeIn 1s ease-out 2.5s forwards, gradientShift 3s ease infinite 2.5s;
+    margin: 0 auto;
+}
+
+@keyframes buttonFadeIn {
+    0% {
+        opacity: 0;
+        transform: translateY(30px) scale(0.9);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+@keyframes gradientShift {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+.btn-icon {
+    font-size: 24px;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+}
+
+.btn-text {
+    font-weight: 700;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.btn-shine {
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+    transition: left 0.6s ease;
+}
+
+.btn.primary:hover {
+    transform: translateY(-5px) scale(1.05);
+    box-shadow: 0 15px 35px rgba(255, 107, 157, 0.6);
+    border-color: rgba(255, 255, 255, 0.6);
+}
+
+.btn.primary:hover .btn-shine {
+    left: 100%;
+}
+
+.btn.primary:active {
+    transform: translateY(-2px) scale(1.02);
+    transition: all 0.1s ease;
+}
+
+/* タイトル画面常駐ロゴ */
+.persistent-logo {
+    position: absolute;
+    top: 15%;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 5;
+}
+
+.title-main-logo {
+    max-width: 70vw;
+    max-height: 35vh;
+    opacity: 0;
+    animation: titleLogoFadeIn 1.2s ease-out 0.5s forwards;
+}
+
+@keyframes titleLogoFadeIn {
+    0% {
+        opacity: 0;
+        transform: scale(0.8) translateY(-20px);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+/* タイトル画面 */
+.title-container {
+    text-align: center;
+    background: rgba(255, 255, 255, 0.85);
+    padding: 30px 40px 40px;
+    border-radius: 25px;
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
+    border: 3px solid #ff6b9d;
+    position: absolute;
+    bottom: 25%;
+    left: 50%;
+    transform: translateX(-50%);
+    backdrop-filter: blur(10px);
+    min-width: 450px;
+    opacity: 0;
+    animation: containerFadeIn 1s ease-out 1s forwards;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+@keyframes containerFadeIn {
+    0% {
+        opacity: 0;
+        transform: translateX(-50%) translateY(20px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+    }
+}
+
+.title-subtitle {
+    font-family: 'Comfortaa', sans-serif;
+    font-size: 1.6rem;
+    color: #ff6b9d;
+    margin-bottom: 30px;
+    font-weight: 600;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
+    letter-spacing: 1px;
+    opacity: 0;
+    animation: subtitleFadeIn 1s ease-out 1.5s forwards;
+}
+
+@keyframes subtitleFadeIn {
+    0% {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* ゲーム画面 */
+.game-container {
+    width: 100%;
+    max-width: 900px;
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 15px;
+    padding: 30px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    border: 2px solid #8b5a2b;
+}
+
+.game-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+    padding: 15px 20px;
+    background: linear-gradient(135deg, #f8f5f0 0%, #ede7dc 100%);
+    border-radius: 10px;
+    border: 1px solid #d4c4a8;
+}
+
+.timer-display, .score-display, .mistakes-display {
+    text-align: center;
+    flex: 1;
+}
+
+.timer-label, .score-label, .mistakes-label {
+    display: block;
+    font-size: 0.9rem;
+    color: #5a3f2d;
+    margin-bottom: 5px;
+}
+
+#timer, #score, #mistakes {
+    font-size: 1.8rem;
+    font-weight: bold;
+    color: #2c1810;
+}
+
+#timer {
+    color: #c44536;
+}
+
+/* タイピングエリア */
+.typing-area {
+    text-align: center;
+}
+
+.instructor-message {
+    background: linear-gradient(135deg, #8b5a2b 0%, #a0622f 100%);
+    color: white;
+    padding: 20px;
+    border-radius: 10px;
+    margin-bottom: 30px;
+}
+
+.instructor-name {
+    font-size: 1.2rem;
+    font-weight: bold;
+    margin-bottom: 8px;
+}
+
+.instructor-text {
+    font-size: 1rem;
+}
+
+.product-display {
+    background: #faf8f3;
+    border: 2px solid #d4c4a8;
+    border-radius: 12px;
+    padding: 30px;
+    margin-bottom: 30px;
+}
+
+.product-name, .product-price {
+    margin-bottom: 15px;
+}
+
+.product-label, .price-label {
+    font-size: 1.1rem;
+    color: #5a3f2d;
+    margin-right: 10px;
+}
+
+.product-text, .price-text {
+    font-size: 2rem;
+    font-weight: bold;
+    color: #2c1810;
+}
+
+/* 入力エリア */
+.input-area {
+    margin-bottom: 20px;
+}
+
+#typing-input {
+    width: 100%;
+    max-width: 400px;
+    padding: 15px 20px;
+    font-size: 1.5rem;
+    border: 3px solid #d4c4a8;
+    border-radius: 10px;
+    text-align: center;
+    background: white;
+    color: #2c1810;
+    font-family: inherit;
+    outline: none;
+    transition: border-color 0.3s ease;
+}
+
+#typing-input:focus {
+    border-color: #8b5a2b;
+    box-shadow: 0 0 10px rgba(139, 90, 43, 0.3);
+}
+
+.input-feedback {
+    margin-top: 15px;
+    font-size: 1.2rem;
+    min-height: 30px;
+}
+
+.typed-text {
+    color: #4a7c59;
+    font-weight: bold;
+}
+
+.remaining-text {
+    color: #999;
+}
+
+.error-text {
+    color: #c44536;
+    background-color: #ffebee;
+    padding: 2px 4px;
+    border-radius: 3px;
+}
+
+.progress-indicator {
+    padding: 10px;
+    font-size: 1rem;
+    color: #5a3f2d;
+    background: rgba(139, 90, 43, 0.1);
+    border-radius: 8px;
+}
+
+/* 結果画面 */
+.result-container {
+    text-align: center;
+    background: rgba(255, 255, 255, 0.95);
+    padding: 50px 40px;
+    border-radius: 20px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    border: 3px solid #8b5a2b;
+    max-width: 500px;
+}
+
+.result-title {
+    font-size: 2.5rem;
+    color: #2c1810;
+    margin-bottom: 30px;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.result-stats {
+    margin-bottom: 30px;
+}
+
+.stat-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 20px;
+    margin-bottom: 10px;
+    background: #f8f5f0;
+    border-radius: 8px;
+    border: 1px solid #d4c4a8;
+}
+
+.stat-label {
+    font-size: 1.1rem;
+    color: #5a3f2d;
+}
+
+.stat-value {
+    font-size: 1.3rem;
+    font-weight: bold;
+    color: #2c1810;
+}
+
+.result-message {
+    margin-bottom: 30px;
+    padding: 20px;
+    background: linear-gradient(135deg, #8b5a2b 0%, #a0622f 100%);
+    color: white;
+    border-radius: 10px;
+}
+
+.comment-text {
+    font-size: 1.2rem;
+    line-height: 1.6;
+}
+
+/* レスポンシブデザイン */
+@media (max-width: 768px) {
+    .game-title {
+        font-size: 2.5rem;
+    }
+    
+    .title-container {
+        padding: 40px 20px;
+    }
+    
+    .game-container {
+        padding: 20px;
+        margin: 10px;
+    }
+    
+    .game-header {
+        flex-direction: column;
+        gap: 15px;
+    }
+    
+    .timer-display, .score-display, .mistakes-display {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        width: 100%;
+        padding: 0 20px;
+    }
+    
+    .timer-label, .score-label, .mistakes-label {
+        margin-bottom: 0;
+    }
+    
+    .product-text, .price-text {
+        font-size: 1.5rem;
+    }
+    
+    #typing-input {
+        font-size: 1.2rem;
+    }
+    
+    .result-container {
+        padding: 30px 20px;
+        margin: 10px;
+    }
+    
+    .result-title {
+        font-size: 2rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .game-title {
+        font-size: 2rem;
+    }
+    
+    .title-subtitle {
+        font-size: 1rem;
+    }
+    
+    .btn {
+        padding: 12px 24px;
+        font-size: 16px;
+    }
+    
+    .product-display {
+        padding: 20px;
+    }
+    
+    .stat-item {
+        padding: 10px 15px;
+    }
+}
