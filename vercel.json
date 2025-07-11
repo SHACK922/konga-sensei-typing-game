@@ -1,6 +1,8 @@
 {
   "version": 2,
   "name": "konga-sensei-typing-game",
+  "buildCommand": "echo 'Static site - no build required'",
+  "outputDirectory": ".",
   "cleanUrls": true,
   "trailingSlash": false
 }
