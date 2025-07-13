@@ -93,10 +93,13 @@ let gameState = {
 // DOM要素
 const elements = {
     titleScreen: document.getElementById('title-screen'),
+    readyScreen: document.getElementById('ready-screen'),
+    countdownScreen: document.getElementById('countdown-screen'),
     gameScreen: document.getElementById('game-screen'),
     resultScreen: document.getElementById('result-screen'),
     startButton: document.getElementById('start-button'),
     retryButton: document.getElementById('retry-button'),
+    countdownNumber: document.getElementById('countdown-number'),
     timer: document.getElementById('timer'),
     score: document.getElementById('score'),
     mistakes: document.getElementById('mistakes'),
@@ -115,13 +118,16 @@ const elements = {
 
 // 初期化
 function init() {
-    // ローディング画面を表示し、4秒後にタイトル画面に遷移
+    // ローディング画面を表示し、7秒後にタイトル画面に遷移
     showLoadingScreen();
     
-    elements.startButton.addEventListener('click', startGame);
+    elements.startButton.addEventListener('click', showReadyScreen);
     elements.retryButton.addEventListener('click', resetGame);
     elements.typingInput.addEventListener('input', handleInput);
     elements.typingInput.addEventListener('keydown', handleKeyDown);
+    
+    // グローバルEnterキーイベント
+    document.addEventListener('keydown', handleGlobalKeyDown);
 }
 
 // ローディング画面表示
@@ -143,6 +149,45 @@ function showLoadingScreen() {
     }, 7000);
 }
 
+// Ready画面表示
+function showReadyScreen() {
+    showScreen('ready');
+}
+
+// グローバルキーイベント処理
+function handleGlobalKeyDown(event) {
+    if (event.key === 'Enter' && gameState.currentScreen === 'ready') {
+        event.preventDefault();
+        startCountdown();
+    }
+}
+
+// カウントダウン開始
+function startCountdown() {
+    showScreen('countdown');
+    
+    const countNumbers = ['五', '四', '三', '弐', '壱'];
+    let currentCount = 0;
+    
+    function showNextCount() {
+        if (currentCount < countNumbers.length) {
+            elements.countdownNumber.textContent = countNumbers[currentCount];
+            elements.countdownNumber.style.animation = 'none';
+            elements.countdownNumber.offsetHeight; // リフロー強制
+            elements.countdownNumber.style.animation = 'countdownBounce 1s cubic-bezier(0.68, -0.55, 0.265, 1.55)';
+            
+            currentCount++;
+            setTimeout(showNextCount, 1000);
+        } else {
+            // カウントダウン終了 → ゲーム開始
+            elements.countdownNumber.classList.add('countdown-fade-out');
+            setTimeout(startGame, 500);
+        }
+    }
+    
+    showNextCount();
+}
+
 // ゲーム開始
 function startGame() {
     gameState.isGameRunning = true;
@@ -162,12 +207,20 @@ function startGame() {
 // 画面切り替え
 function showScreen(screenName) {
     elements.titleScreen.classList.add('hidden');
+    elements.readyScreen.classList.add('hidden');
+    elements.countdownScreen.classList.add('hidden');
     elements.gameScreen.classList.add('hidden');
     elements.resultScreen.classList.add('hidden');
     
     switch(screenName) {
         case 'title':
             elements.titleScreen.classList.remove('hidden');
+            break;
+        case 'ready':
+            elements.readyScreen.classList.remove('hidden');
+            break;
+        case 'countdown':
+            elements.countdownScreen.classList.remove('hidden');
             break;
         case 'game':
             elements.gameScreen.classList.remove('hidden');
