@@ -55,6 +55,30 @@
         </div>
     </div>
 
+    <!-- 難易度選択画面 -->
+    <div id="difficulty-screen" class="screen hidden">
+        <div class="difficulty-container">
+            <div class="difficulty-title">修行の難易度を選択してください</div>
+            <div class="difficulty-options">
+                <button class="difficulty-btn" data-difficulty="genin">
+                    <div class="difficulty-rank">下忍</div>
+                    <div class="difficulty-desc">制限時間なし</div>
+                    <div class="difficulty-detail">じっくりと修行に集中</div>
+                </button>
+                <button class="difficulty-btn" data-difficulty="chunin">
+                    <div class="difficulty-rank">中忍</div>
+                    <div class="difficulty-desc">1問10秒制限</div>
+                    <div class="difficulty-detail">程よい緊張感で修行</div>
+                </button>
+                <button class="difficulty-btn" data-difficulty="jonin">
+                    <div class="difficulty-rank">上忍</div>
+                    <div class="difficulty-desc">1問5秒制限</div>
+                    <div class="difficulty-detail">究極の集中力を試す</div>
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- Enter待機画面 -->
     <div id="ready-screen" class="screen hidden">
         <div class="ready-container">
@@ -120,6 +144,31 @@
 
                 <div class="progress-indicator">
                     <div class="progress-text">次: 金額を入力</div>
+                    <div id="question-timer" class="question-timer hidden">
+                        <span class="timer-label">制限時間</span>
+                        <span id="question-time">10</span>秒
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 手裏剣メーター -->
+            <div class="shuriken-meter">
+                <div class="meter-label">手裏剣メーター</div>
+                <div class="meter-container">
+                    <div class="meter-bar">
+                        <div id="meter-fill" class="meter-fill"></div>
+                    </div>
+                    <div class="meter-info">
+                        <span id="meter-points">0</span>/10 
+                        <span class="meter-bonus">🕐+2秒</span>
+                    </div>
+                </div>
+                <div class="shuriken-icons">
+                    <span class="shuriken">🌟</span>
+                    <span class="shuriken">🌟</span>
+                    <span class="shuriken">🌟</span>
+                    <span class="shuriken">🌟</span>
+                    <span class="shuriken">🌟</span>
                 </div>
             </div>
         </div>

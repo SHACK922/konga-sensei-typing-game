@@ -471,6 +471,85 @@ body {
     }
 }
 
+/* 難易度選択画面 */
+.difficulty-container {
+    text-align: center;
+    background: rgba(255, 255, 255, 0.95);
+    padding: 50px 30px;
+    border-radius: 25px;
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
+    border: 3px solid #8b5a2b;
+    backdrop-filter: blur(10px);
+    max-width: 800px;
+}
+
+.difficulty-title {
+    font-family: 'Comfortaa', sans-serif;
+    font-size: 2rem;
+    color: #2c1810;
+    margin-bottom: 40px;
+    font-weight: 700;
+}
+
+.difficulty-options {
+    display: flex;
+    gap: 30px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.difficulty-btn {
+    background: linear-gradient(135deg, #f8f5f0 0%, #ede7dc 100%);
+    border: 3px solid #d4c4a8;
+    border-radius: 20px;
+    padding: 30px 25px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    min-width: 180px;
+    text-align: center;
+    font-family: inherit;
+}
+
+.difficulty-btn:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px rgba(139, 90, 43, 0.3);
+    border-color: #8b5a2b;
+    background: linear-gradient(135deg, #fff 0%, #f8f5f0 100%);
+}
+
+.difficulty-rank {
+    font-size: 1.8rem;
+    font-weight: bold;
+    color: #8b5a2b;
+    margin-bottom: 10px;
+    font-family: 'Hiragino Mincho ProN', serif;
+}
+
+.difficulty-desc {
+    font-size: 1.1rem;
+    color: #2c1810;
+    margin-bottom: 8px;
+    font-weight: 600;
+}
+
+.difficulty-detail {
+    font-size: 0.9rem;
+    color: #5a3f2d;
+    font-style: italic;
+}
+
+.difficulty-btn[data-difficulty="genin"]:hover .difficulty-rank {
+    color: #4a7c59;
+}
+
+.difficulty-btn[data-difficulty="chunin"]:hover .difficulty-rank {
+    color: #ff6b9d;
+}
+
+.difficulty-btn[data-difficulty="jonin"]:hover .difficulty-rank {
+    color: #c44536;
+}
+
 /* Enter待機画面 */
 .ready-container {
     text-align: center;
@@ -695,6 +774,16 @@ body {
 #typing-input:focus {
     border-color: #8b5a2b;
     box-shadow: 0 0 10px rgba(139, 90, 43, 0.3);
+    outline: none;
+}
+
+/* ゲーム画面では常に入力欄にフォーカスが当たるようにする */
+#game-screen {
+    cursor: text;
+}
+
+#game-screen * {
+    cursor: inherit;
 }
 
 .input-feedback {
@@ -725,6 +814,116 @@ body {
     color: #5a3f2d;
     background: rgba(139, 90, 43, 0.1);
     border-radius: 8px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 15px;
+}
+
+/* 問題制限時間タイマー */
+.question-timer {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    background: linear-gradient(45deg, #c44536, #ff6b9d);
+    color: white;
+    padding: 8px 15px;
+    border-radius: 15px;
+    font-weight: bold;
+    box-shadow: 0 3px 10px rgba(196, 69, 54, 0.3);
+    animation: timerPulse 1s ease-in-out infinite;
+}
+
+@keyframes timerPulse {
+    0%, 100% {
+        transform: scale(1);
+        box-shadow: 0 3px 10px rgba(196, 69, 54, 0.3);
+    }
+    50% {
+        transform: scale(1.05);
+        box-shadow: 0 5px 15px rgba(196, 69, 54, 0.5);
+    }
+}
+
+/* 手裏剣メーター */
+.shuriken-meter {
+    background: linear-gradient(135deg, #2c1810 0%, #3d2417 100%);
+    padding: 15px 20px;
+    border-radius: 15px;
+    margin-top: 20px;
+    border: 2px solid #8b5a2b;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+}
+
+.meter-label {
+    color: #ffa726;
+    font-weight: bold;
+    font-size: 1rem;
+    margin-bottom: 10px;
+    text-align: center;
+    font-family: 'Comfortaa', sans-serif;
+}
+
+.meter-container {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 10px;
+}
+
+.meter-bar {
+    flex: 1;
+    height: 20px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 10px;
+    overflow: hidden;
+    border: 1px solid #8b5a2b;
+}
+
+.meter-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #4a7c59, #ffa726, #ff6b9d);
+    width: 0%;
+    transition: width 0.3s ease;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(255, 167, 38, 0.5);
+}
+
+.meter-info {
+    color: white;
+    font-weight: bold;
+    font-size: 0.9rem;
+    white-space: nowrap;
+}
+
+.meter-bonus {
+    color: #ffa726;
+    margin-left: 8px;
+}
+
+.shuriken-icons {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+}
+
+.shuriken {
+    font-size: 1.2rem;
+    opacity: 0.3;
+    transition: all 0.3s ease;
+    animation: shurikenFloat 3s ease-in-out infinite;
+}
+
+.shuriken.active {
+    opacity: 1;
+    transform: scale(1.2);
+    filter: drop-shadow(0 0 8px #ffa726);
+}
+
+@keyframes shurikenFloat {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-3px); }
 }
 
 /* 結果画面 */
