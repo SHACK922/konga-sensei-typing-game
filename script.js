@@ -1364,17 +1364,13 @@ function displayRanking(type) {
         const difficultyName = DIFFICULTY_SETTINGS[entry.difficulty]?.name || entry.difficulty;
         
         return `
-            <div class="ranking-item ${rank <= 3 ? 'top-rank' : ''}">
-                <div class="rank-number ${rank === 1 ? 'first' : rank === 2 ? 'second' : rank === 3 ? 'third' : ''}">${rank}</div>
-                <div class="player-info">
-                    <div class="player-name">${escapeHtml(entry.name)}</div>
-                    <div class="player-meta">
-                        <span class="difficulty">${difficultyName}</span>
-                        <span class="date">${date.toLocaleDateString()}</span>
-                    </div>
+            <div class="ranking-item rank-${rank} ${rank <= 3 ? 'top-3' : ''}">
+                <div class="ranking-rank rank-${rank}">${rank}</div>
+                <div class="ranking-info">
+                    <div class="ranking-name">${escapeHtml(entry.name)}</div>
+                    <div class="ranking-title-text" style="color: ${entry.title.color}">${entry.title.name}</div>
                 </div>
-                <div class="player-score">${entry.score}点</div>
-                <div class="player-title" style="color: ${entry.title.color}">${entry.title.name}</div>
+                <div class="ranking-score">${entry.score}点</div>
             </div>
         `;
     }).join('');
