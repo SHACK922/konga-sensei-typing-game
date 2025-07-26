@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>コンガ先生のレジ打ち修行</title>
     <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="audio-styles.css">
 </head>
 <body>
     <!-- 背景GIFアニメーション -->
@@ -177,32 +178,96 @@
     <!-- 結果画面 -->
     <div id="result-screen" class="screen hidden">
         <div class="result-container">
-            <h2 class="result-title">今回の修行結果</h2>
-            
-            <div class="result-stats">
-                <div class="stat-item">
-                    <span class="stat-label">最終スコア</span>
-                    <span id="final-score" class="stat-value">0</span>
-                </div>
-                <div class="stat-item">
-                    <span class="stat-label">正確な入力数</span>
-                    <span id="correct-count" class="stat-value">0</span>
-                </div>
-                <div class="stat-item">
-                    <span class="stat-label">ミスタイプ数</span>
-                    <span id="final-mistakes" class="stat-value">0</span>
-                </div>
-                <div class="stat-item">
-                    <span class="stat-label">正確率</span>
-                    <span id="accuracy" class="stat-value">0%</span>
+            <!-- 称号セクション -->
+            <div class="title-section">
+                <div class="title-banner">
+                    <div id="title-icon" class="title-icon">🔰</div>
+                    <div class="title-content">
+                        <div class="title-label">獲得称号</div>
+                        <div id="earned-title" class="earned-title">レジ打ち研修中</div>
+                    </div>
+                    <div class="title-sparkles">
+                        <span class="sparkle">✨</span>
+                        <span class="sparkle">⭐</span>
+                        <span class="sparkle">✨</span>
+                    </div>
                 </div>
             </div>
 
-            <div class="result-message">
-                <div id="result-comment" class="comment-text">お疲れ様でした！</div>
+            <!-- 結果統計 -->
+            <div class="result-main">
+                <div class="result-left">
+                    <h2 class="result-title">修行結果</h2>
+                    
+                    <div class="result-stats">
+                        <div class="stat-item score-highlight">
+                            <span class="stat-label">最終スコア</span>
+                            <span id="final-score" class="stat-value score-value">0</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">正確な入力数</span>
+                            <span id="correct-count" class="stat-value">0</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">ミスタイプ数</span>
+                            <span id="final-mistakes" class="stat-value">0</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">正確率</span>
+                            <span id="accuracy" class="stat-value">0%</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="result-right">
+                    <div class="next-title-info">
+                        <div class="next-title-label">次の称号まで</div>
+                        <div id="next-title-name" class="next-title-name">バーコード読み取り名人</div>
+                        <div class="score-progress">
+                            <div class="progress-bar">
+                                <div id="progress-fill" class="progress-fill"></div>
+                            </div>
+                            <div id="progress-text" class="progress-text">あと30ポイント</div>
+                        </div>
+                    </div>
+                </div>
             </div>
 
-            <button id="retry-button" class="btn primary">もう一度修行する</button>
+            <div class="result-buttons">
+                <button id="retry-button" class="btn primary">
+                    <span class="btn-icon">🔄</span>
+                    <span class="btn-text">もう一度修行する</span>
+                </button>
+                <button id="share-button" class="btn secondary">
+                    <span class="btn-icon">🐦</span>
+                    <span class="btn-text">Xに投稿する</span>
+                </button>
+            </div>
+
+            <!-- スクロール促進矢印 -->
+            <div class="scroll-indicator">
+                <div class="scroll-arrow">
+                    <span>⬇</span>
+                    <span>⬇</span>
+                    <span>⬇</span>
+                </div>
+                <div class="scroll-text">下にスクロール</div>
+            </div>
+
+            <!-- キービジュアル・アニメ視聴セクション -->
+            <div class="anime-section">
+                <div class="key-visual">
+                    <img src="image/キービジュアル.png" alt="クリプトニンジャ咲耶 キービジュアル" class="key-visual-image">
+                </div>
+                <div class="copyright">©CryptoAnime Labs/「クリプトニンジャ咲耶」製作委員会</div>
+                <div class="anime-viewing">
+                    <h3 class="anime-title">・アニメ絶賛放送中！</h3>
+                    <a href="https://tver.jp/series/sri8qw905k" target="_blank" class="tver-btn">
+                        <span class="btn-icon">📺</span>
+                        <span class="btn-text">TVerで無料視聴する</span>
+                    </a>
+                </div>
+            </div>
         </div>
     </div>
 

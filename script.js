@@ -1,5 +1,27 @@
 // ゲーム設定
 const GAME_TIME = 60;
+
+// 半角数字を全角数字に変換する関数
+function toFullWidth(str) {
+    return str.replace(/[0-9]/g, function(s) {
+        return String.fromCharCode(s.charCodeAt(0) + 0xFEE0);
+    });
+}
+
+// 称号システム
+const TITLES = [
+    { minScore: 0, name: 'レジ打ち研修中', color: '#8b5a2b', icon: '🦍' },
+    { minScore: 50, name: 'バーコード読み取り名人', color: '#4a7c59', icon: '🦍' },
+    { minScore: 100, name: '袋詰めマスター', color: '#ff6b9d', icon: '🦍' },
+    { minScore: 150, name: 'お弁当温め職人', color: '#ffa726', icon: '🦍' },
+    { minScore: 200, name: '公共料金取扱士', color: '#42a5f5', icon: '🦍' },
+    { minScore: 250, name: '収入印紙マスター', color: '#ab47bc', icon: '🥷' },
+    { minScore: 300, name: '秘伝の継承者', color: '#c44536', icon: '🥷' },
+    { minScore: 350, name: '店長', color: '#d4af37', icon: '🥷' },
+    { minScore: 400, name: '伝説の忍', color: '#2c1810', icon: '🥷' },
+    { minScore: 450, name: 'コンガ流免許皆伝', color: '#8b0000', icon: '🥷' },
+    { minScore: 500, name: 'シノビマートの神', color: '#ffd700', icon: '🥷' }
+];
 const DIFFICULTY_SETTINGS = {
     genin: { questionTimeLimit: null, name: '下忍' },
     chunin: { questionTimeLimit: 10, name: '中忍' },
@@ -96,7 +118,9 @@ let gameState = {
     justCleared: false, // 入力欄がクリアされたばかりかのフラグ
     difficulty: null,
     questionTimeRemaining: null,
-    shurikenPoints: 0 // 手裏剣メーターポイント
+    shurikenPoints: 0, // 手裏剣メーターポイント
+    currentBGM: null, // 現在再生中のBGM
+    audioEnabled: false // 音楽が有効かどうか
 };
 
 // DOM要素
@@ -124,15 +148,23 @@ const elements = {
     remainingText: document.getElementById('remaining-text'),
     progressIndicator: document.querySelector('.progress-indicator'),
     progressText: document.querySelector('.progress-text'),
+    titleIcon: document.getElementById('title-icon'),
+    earnedTitle: document.getElementById('earned-title'),
+    achievementLevel: document.getElementById('achievement-level'),
+    nextTitleName: document.getElementById('next-title-name'),
+    progressFill: document.getElementById('progress-fill'),
+    progressTextResult: document.getElementById('progress-text'),
     finalScore: document.getElementById('final-score'),
     correctCount: document.getElementById('correct-count'),
     finalMistakes: document.getElementById('final-mistakes'),
-    accuracy: document.getElementById('accuracy'),
-    resultComment: document.getElementById('result-comment')
+    accuracy: document.getElementById('accuracy')
 };
 
 // 初期化
 function init() {
+    // ユーザーインタラクションで音楽を有効化
+    setupAudioActivation();
+    
     // ローディング画面を表示し、7秒後にタイトル画面に遷移
     showLoadingScreen();
     
@@ -140,6 +172,12 @@ function init() {
     elements.retryButton.addEventListener('click', resetGame);
     elements.typingInput.addEventListener('input', handleInput);
     elements.typingInput.addEventListener('keydown', handleKeyDown);
+    
+    // X投稿ボタンのイベントリスナー
+    const shareButton = document.getElementById('share-button');
+    if (shareButton) {
+        shareButton.addEventListener('click', shareToX);
+    }
     
     // 難易度選択ボタンイベント
     document.querySelectorAll('.difficulty-btn').forEach(btn => {
@@ -167,6 +205,15 @@ function showLoadingScreen() {
     elements.gameScreen.classList.add('hidden');
     elements.resultScreen.classList.add('hidden');
     
+    // 音楽が有効ならコンビニ入店メロディーを再生
+    console.log('ローディング画面でコンビニ入店メロディを再生開始');
+    tryPlayLoadingSound();
+    
+    // 音楽有効化のメッセージを表示
+    if (!gameState.audioEnabled) {
+        showAudioPrompt();
+    }
+    
     // 7秒後にタイトル画面に遷移（カットイン演出完了後）
     setTimeout(() => {
         document.getElementById('loading-screen').style.opacity = '0';
@@ -175,17 +222,189 @@ function showLoadingScreen() {
         setTimeout(() => {
             document.getElementById('loading-screen').style.display = 'none';
             elements.titleScreen.classList.remove('hidden');
+            // タイトル画面に遷移したことを記録
+            console.log('タイトル画面に遷移完了');
+            
+            // 音楽が有効でない場合はメッセージを表示
+            if (!gameState.audioEnabled) {
+                showAudioPrompt();
+            }
         }, 500);
     }, 7000);
 }
 
+// 音楽有効化のセットアップ
+function setupAudioActivation() {
+    const events = ['click', 'keydown', 'touchstart'];
+    
+    function enableAudio() {
+        if (!gameState.audioEnabled) {
+            console.log('音楽を有効化しました');
+            gameState.audioEnabled = true;
+            
+            // メッセージを非表示
+            hideAudioPrompt();
+            
+            // 現在の画面に応じて音楽を再生
+            if (gameState.currentScreen === 'loading' || document.getElementById('loading-screen').style.display !== 'none') {
+                playLoadingSound();
+            } else if (gameState.currentScreen === 'title') {
+                playOpeningSound();
+            }
+            
+            // イベントリスナーを削除
+            events.forEach(eventType => {
+                document.removeEventListener(eventType, enableAudio);
+            });
+        }
+    }
+    
+    // イベントリスナーを登録
+    events.forEach(eventType => {
+        document.addEventListener(eventType, enableAudio);
+    });
+}
+
+// 音楽有効化メッセージ表示
+function showAudioPrompt() {
+    let audioPrompt = document.getElementById('audio-prompt');
+    if (!audioPrompt) {
+        audioPrompt = document.createElement('div');
+        audioPrompt.id = 'audio-prompt';
+        audioPrompt.innerHTML = `
+            <div style="
+                position: fixed;
+                top: 20px;
+                left: 50%;
+                transform: translateX(-50%);
+                background: rgba(0,0,0,0.8);
+                color: white;
+                padding: 15px 25px;
+                border-radius: 10px;
+                font-size: 16px;
+                z-index: 10000;
+                text-align: center;
+                box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+                animation: fadeInDown 0.5s ease;
+            ">
+                🎵 音楽を有効にするにはクリックまたはキーを押してください 🎵
+            </div>
+        `;
+        document.body.appendChild(audioPrompt);
+    }
+}
+
+// 音楽有効化メッセージ非表示
+function hideAudioPrompt() {
+    const audioPrompt = document.getElementById('audio-prompt');
+    if (audioPrompt) {
+        audioPrompt.style.animation = 'fadeOut 0.5s ease';
+        setTimeout(() => {
+            audioPrompt.remove();
+        }, 500);
+    }
+}
+
+// ローディング音楽再生試行
+function tryPlayLoadingSound() {
+    if (!gameState.audioEnabled) {
+        console.log('音楽が有効ではありません、ユーザーインタラクションを待機中');
+        return;
+    }
+    playLoadingSound();
+}
+
+// ローディング音楽再生
+function playLoadingSound() {
+    const soundPath = '/Users/shimizutetsuya/バイブコーディング/タイピングゲームテスト/効果音/コンビニ入店メロディ.mp3';
+    
+    try {
+        const audio = new Audio(soundPath);
+        audio.volume = 0.3;
+        audio.muted = false;
+        
+        // 音楽が終了したらオープニング音楽を再生
+        audio.addEventListener('ended', () => {
+            console.log('ローディング音楽終了、オープニング音楽を開始');
+            setTimeout(() => {
+                tryPlayOpeningSound();
+            }, 500);
+        });
+        
+        // エラー時もオープニング音楽を再生
+        audio.addEventListener('error', () => {
+            console.log('ローディング音楽エラー、オープニング音楽を開始');
+            setTimeout(() => {
+                tryPlayOpeningSound();
+            }, 1000);
+        });
+        
+        audio.play().then(() => {
+            console.log('ローディング音楽再生成功');
+        }).catch(error => {
+            console.log('ローディング音楽再生失敗:', error);
+            // 自動再生が失敗した場合もオープニング音楽を再生
+            setTimeout(() => {
+                tryPlayOpeningSound();
+            }, 2000);
+        });
+    } catch (error) {
+        console.log('ローディング音楽作成エラー:', error);
+        // エラー時もオープニング音楽を再生
+        setTimeout(() => {
+            tryPlayOpeningSound();
+        }, 2000);
+    }
+}
+
+// オープニング音楽再生試行
+function tryPlayOpeningSound() {
+    if (!gameState.audioEnabled) {
+        console.log('音楽が有効ではありません、ユーザーインタラクションを待機中');
+        return;
+    }
+    playOpeningSound();
+}
+
+// オープニング音楽再生
+function playOpeningSound() {
+    const soundPath = '/Users/shimizutetsuya/バイブコーディング/タイピングゲームテスト/効果音/オープニング.mp3';
+    
+    try {
+        // 既存のBGMを停止
+        stopBGM();
+        
+        const audio = new Audio(soundPath);
+        audio.volume = 0.4;
+        audio.loop = true;
+        audio.muted = false;
+        gameState.currentBGM = audio;
+        
+        audio.play().then(() => {
+            console.log('オープニング音楽再生成功');
+        }).catch(error => {
+            console.log('オープニング音楽再生失敗:', error);
+        });
+    } catch (error) {
+        console.log('オープニング音楽作成エラー:', error);
+    }
+}
+
 // 難易度選択画面表示
 function showDifficultyScreen() {
+    // 修行開始ボタンの効果音を再生
+    if (gameState.audioEnabled) {
+        playSound('/Users/shimizutetsuya/バイブコーディング/タイピングゲームテスト/効果音/決定ボタンを押す10.mp3', 0.5);
+    }
     showScreen('difficulty');
 }
 
 // 難易度選択
 function selectDifficulty(difficulty) {
+    // 難易度選択ボタンの効果音を再生
+    if (gameState.audioEnabled) {
+        playSound('/Users/shimizutetsuya/バイブコーディング/タイピングゲームテスト/効果音/決定ボタンを押す10.mp3', 0.5);
+    }
     gameState.difficulty = difficulty;
     showScreen('ready');
 }
@@ -199,6 +418,10 @@ function showReadyScreen() {
 function handleGlobalKeyDown(event) {
     if (event.key === 'Enter' && gameState.currentScreen === 'ready') {
         event.preventDefault();
+        // Enterキーの効果音を再生
+        if (gameState.audioEnabled) {
+            playSound('/Users/shimizutetsuya/バイブコーディング/タイピングゲームテスト/効果音/和太鼓でドドン.mp3', 0.6);
+        }
         startCountdown();
     }
 }
@@ -207,11 +430,16 @@ function handleGlobalKeyDown(event) {
 function startCountdown() {
     showScreen('countdown');
     
-    const countNumbers = ['五', '四', '三', '弐', '壱'];
+    const countNumbers = ['伍', '四', '参', '弐', '壱'];
     let currentCount = 0;
     
     function showNextCount() {
         if (currentCount < countNumbers.length) {
+            // カウントダウン音を再生
+            if (gameState.audioEnabled) {
+                playSound('/Users/shimizutetsuya/バイブコーディング/タイピングゲームテスト/効果音/和太鼓でドン.mp3', 0.5);
+            }
+            
             elements.countdownNumber.textContent = countNumbers[currentCount];
             elements.countdownNumber.style.animation = 'none';
             elements.countdownNumber.offsetHeight; // リフロー強制
@@ -220,9 +448,20 @@ function startCountdown() {
             currentCount++;
             setTimeout(showNextCount, 1000);
         } else {
-            // カウントダウン終了 → ゲーム開始
+            // カウントダウン終了時にもう一度ドン音を再生
+            if (gameState.audioEnabled) {
+                playSound('/Users/shimizutetsuya/バイブコーディング/タイピングゲームテスト/効果音/和太鼓でドン.mp3', 0.5);
+            }
+            
             elements.countdownNumber.classList.add('countdown-fade-out');
-            setTimeout(startGame, 500);
+            
+            // 0.75秒後にカカッ音を再生してゲーム開始
+            setTimeout(() => {
+                if (gameState.audioEnabled) {
+                    playSound('/Users/shimizutetsuya/バイブコーディング/タイピングゲームテスト/効果音/和太鼓でカカッ.mp3', 0.6);
+                }
+                setTimeout(startGame, 200);
+            }, 750);
         }
     }
     
@@ -239,6 +478,22 @@ function startGame() {
     gameState.correctInputs = 0;
     gameState.inputPhase = 'name';
     gameState.shurikenPoints = 0;
+    gameState.justCleared = false;
+    
+    // ゲーム開始音楽を再生（BGMとして設定）
+    playBGM('/Users/shimizutetsuya/バイブコーディング/タイピングゲームテスト/効果音/任侠ゴリラ.mp3', 0.4, true);
+    
+    // 入力欄を即座にリセット
+    if (elements.typingInput) {
+        elements.typingInput.value = '';
+        elements.typingInput.blur();
+    }
+    if (elements.typedText) {
+        elements.typedText.textContent = '';
+    }
+    if (elements.remainingText) {
+        elements.remainingText.textContent = '';
+    }
     
     showScreen('game');
     
@@ -248,9 +503,16 @@ function startGame() {
         updateShurikenMeter();
         startTimer();
         
+        // 入力欄を完全にリセット
         if (elements.typingInput) {
-            elements.typingInput.focus();
             elements.typingInput.value = '';
+            elements.typingInput.focus();
+        }
+        if (elements.typedText) {
+            elements.typedText.textContent = '';
+        }
+        if (elements.remainingText) {
+            elements.remainingText.textContent = '';
         }
     }, 200);
 }
@@ -293,6 +555,9 @@ function selectRandomProduct() {
     gameState.currentProduct = PRODUCTS[randomIndex];
     elements.currentProduct.textContent = gameState.currentProduct.name;
     elements.currentPrice.textContent = gameState.currentProduct.price;
+    
+    // 全角数字の価格を保存
+    gameState.currentProduct.fullWidthPrice = toFullWidth(gameState.currentProduct.price.toString());
     
     // 難易度に応じて問題タイマーを開始
     startQuestionTimer();
@@ -374,7 +639,7 @@ function handleInput(event) {
     const inputValue = event.target.value;
     const targetText = gameState.inputPhase === 'name' 
         ? gameState.currentProduct.name 
-        : gameState.currentProduct.price.toString();
+        : gameState.currentProduct.fullWidthPrice;
     
     updateInputFeedback(inputValue, targetText);
 }
@@ -422,7 +687,7 @@ function handleKeyDown(event) {
         const inputValue = elements.typingInput.value.trim();
         const targetText = gameState.inputPhase === 'name' 
             ? gameState.currentProduct.name 
-            : gameState.currentProduct.price.toString();
+            : gameState.currentProduct.fullWidthPrice;
         
         if (inputValue === targetText) {
             // 正解 - 即座に入力欄をクリア
@@ -442,13 +707,18 @@ function handleKeyDown(event) {
 function handleCorrectInput() {
     gameState.correctInputs++;
     
+    // 正解音を再生
+    if (gameState.audioEnabled) {
+        playSound('/Users/shimizutetsuya/バイブコーディング/タイピングゲームテスト/効果音/レジスターで精算.mp3', 0.4);
+    }
+    
     // 問題タイマーをクリア
     clearQuestionTimer();
     
     // 手裏剣ポイント加算（Enter押下時）
     const targetText = gameState.inputPhase === 'name' 
         ? gameState.currentProduct.name 
-        : gameState.currentProduct.price.toString();
+        : gameState.currentProduct.fullWidthPrice;
     
     gameState.shurikenPoints += targetText.length;
     updateShurikenMeter();
@@ -492,15 +762,31 @@ function handleCorrectInput() {
 // 間違い処理
 function handleIncorrectInput() {
     gameState.mistakes++;
-    elements.typingInput.value = '';
-    elements.typedText.textContent = '';
-    elements.remainingText.textContent = '';
+    gameState.justCleared = true;
+    
+    // エラー音を再生
+    if (gameState.audioEnabled) {
+        playSound('/Users/shimizutetsuya/バイブコーディング/タイピングゲームテスト/効果音/ビープ音4.mp3', 0.3);
+    }
+    
+    // 入力欄を完全にリセット
+    if (elements.typingInput) {
+        elements.typingInput.value = '';
+    }
+    if (elements.typedText) {
+        elements.typedText.textContent = '';
+    }
+    if (elements.remainingText) {
+        elements.remainingText.textContent = '';
+    }
+    
     updateDisplay();
     
     // エラーフィードバック
     elements.typingInput.style.borderColor = '#c44536';
     setTimeout(() => {
         elements.typingInput.style.borderColor = '#d4c4a8';
+        gameState.justCleared = false;
     }, 500);
 }
 
@@ -517,27 +803,186 @@ function endGame() {
     const totalAttempts = gameState.correctInputs + gameState.mistakes;
     const accuracy = totalAttempts > 0 ? Math.round((gameState.correctInputs / totalAttempts) * 100) : 0;
     
-    // 結果画面更新
-    elements.finalScore.textContent = gameState.score;
-    elements.correctCount.textContent = gameState.correctInputs;
-    elements.finalMistakes.textContent = gameState.mistakes;
-    elements.accuracy.textContent = accuracy + '%';
+    // 称号計算
+    const earnedTitle = calculateTitle(gameState.score);
+    const nextTitle = getNextTitle(gameState.score);
     
-    // 難易度に応じたコメント生成
-    let comment = '';
-    const diffName = DIFFICULTY_SETTINGS[gameState.difficulty]?.name || '';
-    if (accuracy >= 90) {
-        comment = `すばらしい！${diffName}レベルを完璧にこなしましたね！`;
-    } else if (accuracy >= 75) {
-        comment = `よくできました！${diffName}でこの成績は立派です！`;
-    } else if (accuracy >= 50) {
-        comment = `まずまずです。${diffName}での修行を続けましょう！`;
-    } else {
-        comment = `まだまだ修行が必要ですね。${diffName}で頑張りましょう！`;
-    }
-    elements.resultComment.textContent = comment;
+    // 基本情報設定（アニメーション前）
+    setupResultScreen(earnedTitle, nextTitle, accuracy);
     
     showScreen('result');
+    
+    // 現在のBGMを停止してリザルト音楽を再生
+    stopBGM();
+    setTimeout(() => {
+        playBGM('/Users/shimizutetsuya/バイブコーディング/タイピングゲームテスト/効果音/リザルト.mp3', 0.4);
+    }, 200);
+    
+    // リザルト画面の効果音を再生
+    if (gameState.audioEnabled) {
+        // 1秒後に金額表示音
+        setTimeout(() => {
+            playSound('/Users/shimizutetsuya/バイブコーディング/タイピングゲームテスト/効果音/金額表示.mp3', 0.5);
+            
+            // さらに0.5秒後に歓声と拍手音
+            setTimeout(() => {
+                playSound('/Users/shimizutetsuya/バイブコーディング/タイピングゲームテスト/効果音/歓声と拍手.mp3', 0.4);
+            }, 500);
+        }, 1000);
+    }
+    
+    // 段階的アニメーション開始
+    startResultAnimation(accuracy);
+}
+
+// 称号計算
+function calculateTitle(score) {
+    // スコアに基づいて最適な称号を見つける
+    for (let i = TITLES.length - 1; i >= 0; i--) {
+        if (score >= TITLES[i].minScore) {
+            return TITLES[i];
+        }
+    }
+    return TITLES[0]; // 最低称号
+}
+
+// 次の称号取得
+function getNextTitle(score) {
+    for (let i = 0; i < TITLES.length; i++) {
+        if (score < TITLES[i].minScore) {
+            return TITLES[i];
+        }
+    }
+    return null; // 最高称号を達成済み
+}
+
+// リザルト画面初期設定
+function setupResultScreen(earnedTitle, nextTitle, accuracy) {
+    // 称号情報設定
+    if (elements.titleIcon) {
+        elements.titleIcon.textContent = earnedTitle.icon;
+        elements.titleIcon.style.color = earnedTitle.color;
+    }
+    if (elements.earnedTitle) {
+        elements.earnedTitle.textContent = earnedTitle.name;
+        elements.earnedTitle.style.color = earnedTitle.color;
+    }
+    
+    // 基本統計（初期状態は0に設定）
+    if (elements.finalScore) elements.finalScore.textContent = '0';
+    if (elements.correctCount) elements.correctCount.textContent = '0';
+    if (elements.finalMistakes) elements.finalMistakes.textContent = '0';
+    if (elements.accuracy) elements.accuracy.textContent = '0%';
+    
+    
+    // 達成度レベル設定
+    let achievementLevel = '初級';
+    if (accuracy >= 90) achievementLevel = '伝説級';
+    else if (accuracy >= 80) achievementLevel = '上級';
+    else if (accuracy >= 70) achievementLevel = '中級';
+    else if (accuracy >= 50) achievementLevel = '初級';
+    else achievementLevel = '研修中';
+    
+    if (elements.achievementLevel) {
+        elements.achievementLevel.textContent = achievementLevel;
+    }
+    
+    // 次の称号情報
+    if (nextTitle) {
+        const pointsNeeded = nextTitle.minScore - gameState.score;
+        const progressPercentage = Math.min(100, (gameState.score % 50) / 50 * 100);
+        
+        if (elements.nextTitleName) {
+            elements.nextTitleName.textContent = nextTitle.name;
+        }
+        if (elements.progressTextResult) {
+            elements.progressTextResult.textContent = `あと${pointsNeeded}ポイント`;
+        }
+        if (elements.progressFill) {
+            elements.progressFill.style.width = '0%';
+        }
+    } else {
+        // 最高称号達成済み
+        if (elements.nextTitleName) {
+            elements.nextTitleName.textContent = '称号コンプリート！';
+        }
+        if (elements.progressTextResult) {
+            elements.progressTextResult.textContent = 'おめでとうございます！';
+        }
+        if (elements.progressFill) {
+            elements.progressFill.style.width = '100%';
+        }
+    }
+    
+}
+
+// リザルトアニメーション開始
+function startResultAnimation(accuracy) {
+    // 統計項目のアニメーション（0.5秒間隔）
+    const statItems = document.querySelectorAll('.stat-item');
+    
+    // 各統計項目を順番に表示
+    statItems.forEach((item, index) => {
+        setTimeout(() => {
+            item.classList.add('show');
+            
+            // 数値のカウントアップアニメーション
+            const valueElement = item.querySelector('.stat-value');
+            if (valueElement && index < 4) { // 最初の4つの統計項目
+                let targetValue;
+                let suffix = '';
+                
+                switch (index) {
+                    case 0: // スコア
+                        targetValue = gameState.score;
+                        break;
+                    case 1: // 正確な入力数
+                        targetValue = gameState.correctInputs;
+                        break;
+                    case 2: // ミス数
+                        targetValue = gameState.mistakes;
+                        break;
+                    case 3: // 正確率
+                        targetValue = accuracy;
+                        suffix = '%';
+                        break;
+                }
+                
+                animateNumber(valueElement, 0, targetValue, 800, suffix);
+            }
+        }, index * 500); // 0.5秒間隔
+    });
+    
+    // プログレスバーアニメーション
+    setTimeout(() => {
+        const nextTitle = getNextTitle(gameState.score);
+        if (nextTitle && elements.progressFill) {
+            const progressPercentage = Math.min(100, (gameState.score % 50) / 50 * 100);
+            elements.progressFill.style.width = progressPercentage + '%';
+        }
+    }, statItems.length * 500 + 500);
+}
+
+// 数値カウントアップアニメーション
+function animateNumber(element, start, end, duration, suffix = '') {
+    const startTime = performance.now();
+    
+    function update(currentTime) {
+        const elapsed = currentTime - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        
+        // イージング関数（ease-out）
+        const easeOut = 1 - Math.pow(1 - progress, 3);
+        const currentValue = Math.round(start + (end - start) * easeOut);
+        
+        element.textContent = currentValue + suffix;
+        
+        if (progress < 1) {
+            requestAnimationFrame(update);
+        }
+    }
+    
+    requestAnimationFrame(update);
 }
 
 // ゲームリセット
@@ -550,6 +995,20 @@ function resetGame() {
     gameState.isGameRunning = false;
     gameState.difficulty = null;
     gameState.shurikenPoints = 0;
+    gameState.justCleared = false;
+    
+    // 入力欄を完全にリセット
+    if (elements.typingInput) {
+        elements.typingInput.value = '';
+        elements.typingInput.blur();
+    }
+    if (elements.typedText) {
+        elements.typedText.textContent = '';
+    }
+    if (elements.remainingText) {
+        elements.remainingText.textContent = '';
+    }
+    
     showScreen('title');
 }
 
@@ -588,11 +1047,18 @@ function clearQuestionTimer() {
 // 次の問題にスキップ
 function skipToNextQuestion() {
     clearQuestionTimer();
+    gameState.justCleared = true;
     
-    // 入力欄をクリア
-    elements.typingInput.value = '';
-    elements.typedText.textContent = '';
-    elements.remainingText.textContent = '';
+    // 入力欄を完全にリセット
+    if (elements.typingInput) {
+        elements.typingInput.value = '';
+    }
+    if (elements.typedText) {
+        elements.typedText.textContent = '';
+    }
+    if (elements.remainingText) {
+        elements.remainingText.textContent = '';
+    }
     
     if (gameState.inputPhase === 'name') {
         // 商品名で時間切れ → 金額入力へ
@@ -608,8 +1074,9 @@ function skipToNextQuestion() {
     setTimeout(() => {
         if (elements.typingInput) {
             elements.typingInput.focus();
-            elements.typingInput.value = ''; // 入力欄をクリア
+            elements.typingInput.value = '';
         }
+        gameState.justCleared = false;
     }, 100);
 }
 
@@ -630,6 +1097,80 @@ function updateShurikenMeter() {
             icon.classList.remove('active');
         }
     });
+}
+
+// X投稿機能
+function shareToX() {
+    // 現在の結果データを取得
+    const earnedTitle = calculateTitle(gameState.score);
+    const totalAttempts = gameState.correctInputs + gameState.mistakes;
+    const accuracy = totalAttempts > 0 ? Math.round((gameState.correctInputs / totalAttempts) * 100) : 0;
+    const diffName = DIFFICULTY_SETTINGS[gameState.difficulty]?.name || '不明';
+    
+    // 投稿テキストを生成
+    const shareText = 
+        `コンガ先生のレジ打ち修行で「${earnedTitle.name}」の称号を獲得！\n` +
+        `📊 最終スコア: ${gameState.score}点\n` +
+        `🎯 正確率: ${accuracy}%\n` +
+        `⚔️ 難易度: ${diffName}\n` +
+        `\n#コンガ先生のレジ打ち修行 #タイピングゲーム`;
+    
+    // X投稿用URLを生成
+    const shareUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}`;
+    
+    // 新しいウィンドウで開く
+    window.open(shareUrl, '_blank', 'width=600,height=400');
+}
+
+
+// 効果音再生関数
+function playSound(soundPath, volume = 0.5) {
+    console.log('効果音再生開始:', soundPath);
+    try {
+        const audio = new Audio(soundPath);
+        audio.volume = volume;
+        audio.muted = false;
+        
+        audio.play().then(() => {
+            console.log('効果音再生成功:', soundPath);
+        }).catch(error => {
+            console.log('効果音の再生に失敗:', error, soundPath);
+        });
+    } catch (error) {
+        console.log('効果音ファイルの読み込みに失敗:', error, soundPath);
+    }
+}
+
+// BGM再生関数
+function playBGM(soundPath, volume = 0.5, loop = false) {
+    console.log('BGM再生開始:', soundPath);
+    try {
+        // 既存のBGMを停止
+        stopBGM();
+        
+        const audio = new Audio(soundPath);
+        audio.volume = volume;
+        audio.loop = loop;
+        audio.muted = false;
+        gameState.currentBGM = audio;
+        
+        audio.play().then(() => {
+            console.log('BGM再生成功:', soundPath);
+        }).catch(error => {
+            console.log('BGMの再生に失敗:', error, soundPath);
+        });
+    } catch (error) {
+        console.log('BGMファイルの読み込みに失敗:', error, soundPath);
+    }
+}
+
+// BGM停止関数
+function stopBGM() {
+    if (gameState.currentBGM) {
+        gameState.currentBGM.pause();
+        gameState.currentBGM.currentTime = 0;
+        gameState.currentBGM = null;
+    }
 }
 
 // ページ読み込み時に初期化
