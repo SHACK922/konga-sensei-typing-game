@@ -803,6 +803,11 @@ function endGame() {
     }
     clearQuestionTimer();
     
+    // 時間切れ効果音を再生
+    if (gameState.audioEnabled) {
+        playSound('./効果音/警官のホイッスル2.mp3', 0.5);
+    }
+    
     // 結果計算
     const totalAttempts = gameState.correctInputs + gameState.mistakes;
     const accuracy = totalAttempts > 0 ? Math.round((gameState.correctInputs / totalAttempts) * 100) : 0;
