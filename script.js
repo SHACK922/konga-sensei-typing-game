@@ -239,16 +239,19 @@ function setupAudioActivation() {
     
     function enableAudio() {
         if (!gameState.audioEnabled) {
-            console.log('音楽を有効化しました');
+            console.log('🎵 音楽を有効化しました');
             gameState.audioEnabled = true;
             
             // メッセージを非表示
             hideAudioPrompt();
             
             // 現在の画面に応じて音楽を再生
+            console.log('🎮 現在の画面:', gameState.currentScreen);
             if (gameState.currentScreen === 'loading' || document.getElementById('loading-screen').style.display !== 'none') {
+                console.log('📻 ローディング音楽を再生開始');
                 playLoadingSound();
             } else if (gameState.currentScreen === 'title') {
+                console.log('📻 オープニング音楽を再生開始');
                 playOpeningSound();
             }
             
@@ -547,6 +550,7 @@ function showScreen(screenName) {
             break;
     }
     gameState.currentScreen = screenName;
+    console.log('🎮 画面遷移:', screenName, '| audioEnabled:', gameState.audioEnabled);
 }
 
 // ランダム商品選択
@@ -1125,19 +1129,38 @@ function shareToX() {
 
 // 効果音再生関数
 function playSound(soundPath, volume = 0.5) {
-    console.log('効果音再生開始:', soundPath);
+    console.log('🎵 効果音再生開始:', soundPath, '| audioEnabled:', gameState.audioEnabled);
+    
+    if (!gameState.audioEnabled) {
+        console.log('❌ 音楽が有効ではありません');
+        return;
+    }
+    
     try {
         const audio = new Audio(soundPath);
         audio.volume = volume;
         audio.muted = false;
         
-        audio.play().then(() => {
-            console.log('効果音再生成功:', soundPath);
-        }).catch(error => {
-            console.log('効果音の再生に失敗:', error, soundPath);
+        // ファイル読み込み成功
+        audio.addEventListener('canplaythrough', () => {
+            console.log('✅ 効果音ファイル読み込み成功:', soundPath);
         });
+        
+        // ファイル読み込み失敗
+        audio.addEventListener('error', (e) => {
+            console.log('❌ 効果音ファイル読み込み失敗:', soundPath, e);
+        });
+        
+        const playPromise = audio.play();
+        if (playPromise !== undefined) {
+            playPromise.then(() => {
+                console.log('✅ 効果音再生成功:', soundPath);
+            }).catch(error => {
+                console.log('❌ 効果音の再生に失敗:', error, soundPath);
+            });
+        }
     } catch (error) {
-        console.log('効果音ファイルの読み込みに失敗:', error, soundPath);
+        console.log('❌ 効果音作成エラー:', error, soundPath);
     }
 }
 
