@@ -157,11 +157,31 @@ const elements = {
     finalScore: document.getElementById('final-score'),
     correctCount: document.getElementById('correct-count'),
     finalMistakes: document.getElementById('final-mistakes'),
-    accuracy: document.getElementById('accuracy')
+    accuracy: document.getElementById('accuracy'),
+    
+    // ランキング関連要素
+    rankingScreen: document.getElementById('ranking-screen'),
+    rankingButton: document.getElementById('ranking-button'),
+    resultRankingButton: document.getElementById('result-ranking-button'),
+    rankingBackButton: document.getElementById('ranking-back-button'),
+    overallTab: document.getElementById('overall-tab'),
+    weeklyTab: document.getElementById('weekly-tab'),
+    rankingList: document.getElementById('ranking-list'),
+    
+    // 名前入力モーダル関連要素
+    nameInputModal: document.getElementById('name-input-modal'),
+    achievedRankNumber: document.getElementById('achieved-rank-number'),
+    achievedScore: document.getElementById('achieved-score'),
+    playerName: document.getElementById('player-name'),
+    saveRankingButton: document.getElementById('save-ranking-button'),
+    skipRankingButton: document.getElementById('skip-ranking-button')
 };
 
 // 初期化
 function init() {
+    // 週間ランキングのリセットチェック
+    RankingManager.checkWeeklyReset();
+    
     // ユーザーインタラクションで音楽を有効化
     setupAudioActivation();
     
@@ -177,6 +197,33 @@ function init() {
     const shareButton = document.getElementById('share-button');
     if (shareButton) {
         shareButton.addEventListener('click', shareToX);
+    }
+    
+    // ランキング関連のイベントリスナー
+    if (elements.rankingButton) {
+        elements.rankingButton.addEventListener('click', showRankingScreen);
+    }
+    if (elements.resultRankingButton) {
+        elements.resultRankingButton.addEventListener('click', showRankingScreen);
+    }
+    if (elements.rankingBackButton) {
+        elements.rankingBackButton.addEventListener('click', () => {
+            showScreen('title');
+        });
+    }
+    if (elements.overallTab) {
+        elements.overallTab.addEventListener('click', () => switchRankingTab('overall'));
+    }
+    if (elements.weeklyTab) {
+        elements.weeklyTab.addEventListener('click', () => switchRankingTab('weekly'));
+    }
+    
+    // 名前入力モーダルのイベントリスナー
+    if (elements.saveRankingButton) {
+        elements.saveRankingButton.addEventListener('click', savePlayerRanking);
+    }
+    if (elements.skipRankingButton) {
+        elements.skipRankingButton.addEventListener('click', skipRankingInput);
     }
     
     // 難易度選択ボタンイベント
@@ -528,6 +575,7 @@ function showScreen(screenName) {
     elements.countdownScreen.classList.add('hidden');
     elements.gameScreen.classList.add('hidden');
     elements.resultScreen.classList.add('hidden');
+    elements.rankingScreen.classList.add('hidden');
     
     switch(screenName) {
         case 'title':
@@ -547,6 +595,9 @@ function showScreen(screenName) {
             break;
         case 'result':
             elements.resultScreen.classList.remove('hidden');
+            break;
+        case 'ranking':
+            elements.rankingScreen.classList.remove('hidden');
             break;
     }
     gameState.currentScreen = screenName;
@@ -842,6 +893,11 @@ function endGame() {
     
     // 段階的アニメーション開始
     startResultAnimation(accuracy);
+    
+    // ランキングチェック（アニメーション完了後）
+    setTimeout(() => {
+        checkAndShowRankingInput(gameState.score, earnedTitle);
+    }, 3000);
 }
 
 // 称号計算
@@ -1199,6 +1255,194 @@ function stopBGM() {
         gameState.currentBGM.currentTime = 0;
         gameState.currentBGM = null;
     }
+}
+
+// ランキングシステム
+const RANKING_STORAGE_KEY = 'kongoTypingRanking';
+const WEEKLY_RANKING_KEY = 'kongoTypingWeeklyRanking';
+const LAST_RESET_KEY = 'kongoTypingLastReset';
+const MAX_RANKING_SIZE = 20;
+
+// ランキングデータ構造
+class RankingEntry {
+    constructor(name, score, title, difficulty, date = new Date()) {
+        this.name = name;
+        this.score = score;
+        this.title = title;
+        this.difficulty = difficulty;
+        this.date = date.toISOString();
+        this.timestamp = date.getTime();
+    }
+}
+
+// ランキング管理クラス
+class RankingManager {
+    static getRankings(type = 'overall') {
+        const key = type === 'weekly' ? WEEKLY_RANKING_KEY : RANKING_STORAGE_KEY;
+        const data = localStorage.getItem(key);
+        return data ? JSON.parse(data) : [];
+    }
+    
+    static saveRankings(rankings, type = 'overall') {
+        const key = type === 'weekly' ? WEEKLY_RANKING_KEY : RANKING_STORAGE_KEY;
+        localStorage.setItem(key, JSON.stringify(rankings));
+    }
+    
+    static addRanking(entry, type = 'overall') {
+        const rankings = this.getRankings(type);
+        rankings.push(entry);
+        rankings.sort((a, b) => b.score - a.score);
+        rankings.splice(MAX_RANKING_SIZE);
+        this.saveRankings(rankings, type);
+        return rankings;
+    }
+    
+    static isTopScore(score, type = 'overall') {
+        const rankings = this.getRankings(type);
+        return rankings.length < MAX_RANKING_SIZE || score > (rankings[MAX_RANKING_SIZE - 1]?.score || 0);
+    }
+    
+    static getRank(score, type = 'overall') {
+        const rankings = this.getRankings(type);
+        let rank = 1;
+        for (const entry of rankings) {
+            if (score > entry.score) break;
+            rank++;
+        }
+        return rank;
+    }
+    
+    static checkWeeklyReset() {
+        const lastReset = localStorage.getItem(LAST_RESET_KEY);
+        const now = new Date();
+        const oneWeek = 7 * 24 * 60 * 60 * 1000;
+        
+        if (!lastReset || (now.getTime() - parseInt(lastReset)) > oneWeek) {
+            localStorage.removeItem(WEEKLY_RANKING_KEY);
+            localStorage.setItem(LAST_RESET_KEY, now.getTime().toString());
+        }
+    }
+}
+
+// ランキング機能
+function showRankingScreen() {
+    if (gameState.audioEnabled) {
+        playSound('./効果音/決定ボタンを押す10.mp3', 0.5);
+    }
+    showScreen('ranking');
+    displayRanking('overall');
+}
+
+function switchRankingTab(type) {
+    if (gameState.audioEnabled) {
+        playSound('./効果音/決定ボタンを押す10.mp3', 0.3);
+    }
+    
+    elements.overallTab.classList.toggle('active', type === 'overall');
+    elements.weeklyTab.classList.toggle('active', type === 'weekly');
+    displayRanking(type);
+}
+
+function displayRanking(type) {
+    const rankings = RankingManager.getRankings(type);
+    const container = elements.rankingList;
+    
+    if (rankings.length === 0) {
+        container.innerHTML = `
+            <div class="ranking-empty">
+                <div class="empty-icon">🏆</div>
+                <div class="empty-message">まだランキングデータがありません</div>
+                <div class="empty-subtitle">ゲームをプレイしてランキングに挑戦しよう！</div>
+            </div>
+        `;
+        return;
+    }
+    
+    container.innerHTML = rankings.map((entry, index) => {
+        const rank = index + 1;
+        const date = new Date(entry.date);
+        const difficultyName = DIFFICULTY_SETTINGS[entry.difficulty]?.name || entry.difficulty;
+        
+        return `
+            <div class="ranking-item ${rank <= 3 ? 'top-rank' : ''}">
+                <div class="rank-number ${rank === 1 ? 'first' : rank === 2 ? 'second' : rank === 3 ? 'third' : ''}">${rank}</div>
+                <div class="player-info">
+                    <div class="player-name">${escapeHtml(entry.name)}</div>
+                    <div class="player-meta">
+                        <span class="difficulty">${difficultyName}</span>
+                        <span class="date">${date.toLocaleDateString()}</span>
+                    </div>
+                </div>
+                <div class="player-score">${entry.score}点</div>
+                <div class="player-title" style="color: ${entry.title.color}">${entry.title.name}</div>
+            </div>
+        `;
+    }).join('');
+}
+
+function checkAndShowRankingInput(score, title) {
+    const isOverallTop = RankingManager.isTopScore(score, 'overall');
+    const isWeeklyTop = RankingManager.isTopScore(score, 'weekly');
+    
+    if (isOverallTop || isWeeklyTop) {
+        const rank = Math.min(
+            RankingManager.getRank(score, 'overall'),
+            RankingManager.getRank(score, 'weekly')
+        );
+        
+        showNameInputModal(score, rank);
+    }
+}
+
+function showNameInputModal(score, rank) {
+    elements.achievedRankNumber.textContent = rank;
+    elements.achievedScore.textContent = `${score}点`;
+    elements.playerName.value = '';
+    elements.nameInputModal.classList.remove('hidden');
+    
+    // 入力欄にフォーカス
+    setTimeout(() => {
+        elements.playerName.focus();
+    }, 100);
+}
+
+function savePlayerRanking() {
+    const name = elements.playerName.value.trim();
+    if (!name) {
+        alert('お名前を入力してください');
+        return;
+    }
+    
+    if (gameState.audioEnabled) {
+        playSound('./効果音/決定ボタンを押す10.mp3', 0.5);
+    }
+    
+    const earnedTitle = calculateTitle(gameState.score);
+    const entry = new RankingEntry(name, gameState.score, earnedTitle, gameState.difficulty);
+    
+    // 総合と週間の両方に追加
+    RankingManager.addRanking(entry, 'overall');
+    RankingManager.addRanking(entry, 'weekly');
+    
+    elements.nameInputModal.classList.add('hidden');
+    
+    // ランキング登録完了のフィードバック
+    setTimeout(() => {
+        alert(`ランキングに登録されました！\n${name}さん、おめでとうございます！`);
+    }, 100);
+}
+
+function skipRankingInput() {
+    if (gameState.audioEnabled) {
+        playSound('./効果音/決定ボタンを押す10.mp3', 0.3);
+    }
+    elements.nameInputModal.classList.add('hidden');
+}
+
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
 }
 
 // ページ読み込み時に初期化
