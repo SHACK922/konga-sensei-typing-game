@@ -316,7 +316,7 @@ function tryPlayLoadingSound() {
 
 // ローディング音楽再生
 function playLoadingSound() {
-    const soundPath = '/Users/shimizutetsuya/バイブコーディング/タイピングゲームテスト/効果音/コンビニ入店メロディ.mp3';
+    const soundPath = './効果音/コンビニ入店メロディ.mp3';
     
     try {
         const audio = new Audio(soundPath);
@@ -368,7 +368,7 @@ function tryPlayOpeningSound() {
 
 // オープニング音楽再生
 function playOpeningSound() {
-    const soundPath = '/Users/shimizutetsuya/バイブコーディング/タイピングゲームテスト/効果音/オープニング.mp3';
+    const soundPath = './効果音/オープニング.mp3';
     
     try {
         // 既存のBGMを停止
@@ -394,7 +394,7 @@ function playOpeningSound() {
 function showDifficultyScreen() {
     // 修行開始ボタンの効果音を再生
     if (gameState.audioEnabled) {
-        playSound('/Users/shimizutetsuya/バイブコーディング/タイピングゲームテスト/効果音/決定ボタンを押す10.mp3', 0.5);
+        playSound('./効果音/決定ボタンを押す10.mp3', 0.5);
     }
     showScreen('difficulty');
 }
@@ -403,7 +403,7 @@ function showDifficultyScreen() {
 function selectDifficulty(difficulty) {
     // 難易度選択ボタンの効果音を再生
     if (gameState.audioEnabled) {
-        playSound('/Users/shimizutetsuya/バイブコーディング/タイピングゲームテスト/効果音/決定ボタンを押す10.mp3', 0.5);
+        playSound('./効果音/決定ボタンを押す10.mp3', 0.5);
     }
     gameState.difficulty = difficulty;
     showScreen('ready');
@@ -420,7 +420,7 @@ function handleGlobalKeyDown(event) {
         event.preventDefault();
         // Enterキーの効果音を再生
         if (gameState.audioEnabled) {
-            playSound('/Users/shimizutetsuya/バイブコーディング/タイピングゲームテスト/効果音/和太鼓でドドン.mp3', 0.6);
+            playSound('./効果音/和太鼓でドドン.mp3', 0.6);
         }
         startCountdown();
     }
@@ -437,7 +437,7 @@ function startCountdown() {
         if (currentCount < countNumbers.length) {
             // カウントダウン音を再生
             if (gameState.audioEnabled) {
-                playSound('/Users/shimizutetsuya/バイブコーディング/タイピングゲームテスト/効果音/和太鼓でドン.mp3', 0.5);
+                playSound('./効果音/和太鼓でドン.mp3', 0.5);
             }
             
             elements.countdownNumber.textContent = countNumbers[currentCount];
@@ -450,7 +450,7 @@ function startCountdown() {
         } else {
             // カウントダウン終了時にもう一度ドン音を再生
             if (gameState.audioEnabled) {
-                playSound('/Users/shimizutetsuya/バイブコーディング/タイピングゲームテスト/効果音/和太鼓でドン.mp3', 0.5);
+                playSound('./効果音/和太鼓でドン.mp3', 0.5);
             }
             
             elements.countdownNumber.classList.add('countdown-fade-out');
@@ -458,7 +458,7 @@ function startCountdown() {
             // 0.75秒後にカカッ音を再生してゲーム開始
             setTimeout(() => {
                 if (gameState.audioEnabled) {
-                    playSound('/Users/shimizutetsuya/バイブコーディング/タイピングゲームテスト/効果音/和太鼓でカカッ.mp3', 0.6);
+                    playSound('./効果音/和太鼓でカカッ.mp3', 0.6);
                 }
                 setTimeout(startGame, 200);
             }, 750);
@@ -481,7 +481,7 @@ function startGame() {
     gameState.justCleared = false;
     
     // ゲーム開始音楽を再生（BGMとして設定）
-    playBGM('/Users/shimizutetsuya/バイブコーディング/タイピングゲームテスト/効果音/任侠ゴリラ.mp3', 0.4, true);
+    playBGM('./効果音/任侠ゴリラ.mp3', 0.4, true);
     
     // 入力欄を即座にリセット
     if (elements.typingInput) {
@@ -709,7 +709,7 @@ function handleCorrectInput() {
     
     // 正解音を再生
     if (gameState.audioEnabled) {
-        playSound('/Users/shimizutetsuya/バイブコーディング/タイピングゲームテスト/効果音/レジスターで精算.mp3', 0.4);
+        playSound('./効果音/レジスターで精算.mp3', 0.4);
     }
     
     // 問題タイマーをクリア
@@ -766,7 +766,7 @@ function handleIncorrectInput() {
     
     // エラー音を再生
     if (gameState.audioEnabled) {
-        playSound('/Users/shimizutetsuya/バイブコーディング/タイピングゲームテスト/効果音/ビープ音4.mp3', 0.3);
+        playSound('./効果音/ビープ音4.mp3', 0.3);
     }
     
     // 入力欄を完全にリセット
@@ -815,18 +815,18 @@ function endGame() {
     // 現在のBGMを停止してリザルト音楽を再生
     stopBGM();
     setTimeout(() => {
-        playBGM('/Users/shimizutetsuya/バイブコーディング/タイピングゲームテスト/効果音/リザルト.mp3', 0.4);
+        playBGM('./効果音/リザルト.mp3', 0.4);
     }, 200);
     
     // リザルト画面の効果音を再生
     if (gameState.audioEnabled) {
         // 1秒後に金額表示音
         setTimeout(() => {
-            playSound('/Users/shimizutetsuya/バイブコーディング/タイピングゲームテスト/効果音/金額表示.mp3', 0.5);
+            playSound('./効果音/金額表示.mp3', 0.5);
             
             // さらに0.5秒後に歓声と拍手音
             setTimeout(() => {
-                playSound('/Users/shimizutetsuya/バイブコーディング/タイピングゲームテスト/効果音/歓声と拍手.mp3', 0.4);
+                playSound('./効果音/歓声と拍手.mp3', 0.4);
             }, 500);
         }, 1000);
     }
