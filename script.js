@@ -100,7 +100,10 @@ const PRODUCTS = [
     { name: 'おまつり', price: 19 },
     { name: '咲耶VS狐白', price: 23 },
     { name: '滅びの術', price: 25 },
-    { name: '大団円', price: 26 }
+    { name: '大団円', price: 26 },
+    { name: '咲耶です。元気です', price: 26 },
+    { name: 'アプリかよ', price: 27 },
+    { name: 'コンガ祐三', price: 28 }
 ];
 
 // ゲーム状態
