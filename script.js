@@ -1260,10 +1260,7 @@ function stopBGM() {
     }
 }
 
-// ランキングシステム
-const RANKING_STORAGE_KEY = 'kongoTypingRanking';
-const WEEKLY_RANKING_KEY = 'kongoTypingWeeklyRanking';
-const LAST_RESET_KEY = 'kongoTypingLastReset';
+// Firebase Firestore ランキングシステム
 const MAX_RANKING_SIZE = 20;
 
 // ランキングデータ構造
@@ -1275,38 +1272,88 @@ class RankingEntry {
         this.difficulty = difficulty;
         this.date = date.toISOString();
         this.timestamp = date.getTime();
+        this.createdAt = null; // Firestoreサーバータイムスタンプ用
     }
 }
 
-// ランキング管理クラス
+// Firebase ランキング管理クラス
 class RankingManager {
-    static getRankings(type = 'overall') {
-        const key = type === 'weekly' ? WEEKLY_RANKING_KEY : RANKING_STORAGE_KEY;
-        const data = localStorage.getItem(key);
-        return data ? JSON.parse(data) : [];
+    static isFirebaseReady() {
+        return typeof window.firebaseDB !== 'undefined' && window.firebaseUtils;
     }
     
-    static saveRankings(rankings, type = 'overall') {
-        const key = type === 'weekly' ? WEEKLY_RANKING_KEY : RANKING_STORAGE_KEY;
-        localStorage.setItem(key, JSON.stringify(rankings));
+    static async getRankings(type = 'overall') {
+        if (!this.isFirebaseReady()) {
+            console.log('Firebase not ready, using localStorage fallback');
+            return this.getLocalRankings(type);
+        }
+        
+        try {
+            const { collection, getDocs, query, orderBy, limit } = window.firebaseUtils;
+            const collectionName = type === 'weekly' ? 'weeklyRankings' : 'overallRankings';
+            
+            const q = query(
+                collection(window.firebaseDB, collectionName),
+                orderBy('score', 'desc'),
+                limit(MAX_RANKING_SIZE)
+            );
+            
+            const querySnapshot = await getDocs(q);
+            const rankings = [];
+            
+            querySnapshot.forEach((doc) => {
+                const data = doc.data();
+                rankings.push({
+                    id: doc.id,
+                    ...data,
+                    date: data.date || data.createdAt?.toDate()?.toISOString() || new Date().toISOString()
+                });
+            });
+            
+            console.log(`✅ Firestore ${type} rankings loaded:`, rankings.length, 'entries');
+            return rankings;
+            
+        } catch (error) {
+            console.log('❌ Firestore読み込みエラー、localStorageにフォールバック:', error);
+            return this.getLocalRankings(type);
+        }
     }
     
-    static addRanking(entry, type = 'overall') {
-        const rankings = this.getRankings(type);
-        rankings.push(entry);
-        rankings.sort((a, b) => b.score - a.score);
-        rankings.splice(MAX_RANKING_SIZE);
-        this.saveRankings(rankings, type);
-        return rankings;
+    static async addRanking(entry, type = 'overall') {
+        if (!this.isFirebaseReady()) {
+            console.log('Firebase not ready, using localStorage fallback');
+            return this.addLocalRanking(entry, type);
+        }
+        
+        try {
+            const { collection, addDoc, serverTimestamp } = window.firebaseUtils;
+            const collectionName = type === 'weekly' ? 'weeklyRankings' : 'overallRankings';
+            
+            const firestoreEntry = {
+                ...entry,
+                createdAt: serverTimestamp(),
+                type: type,
+                version: '1.0'
+            };
+            
+            const docRef = await addDoc(collection(window.firebaseDB, collectionName), firestoreEntry);
+            console.log(`✅ Firestore ${type} ranking saved with ID:`, docRef.id);
+            
+            return await this.getRankings(type);
+            
+        } catch (error) {
+            console.log('❌ Firestore保存エラー、localStorageにフォールバック:', error);
+            return this.addLocalRanking(entry, type);
+        }
     }
     
-    static isTopScore(score, type = 'overall') {
-        const rankings = this.getRankings(type);
+    static async isTopScore(score, type = 'overall') {
+        const rankings = await this.getRankings(type);
         return rankings.length < MAX_RANKING_SIZE || score > (rankings[MAX_RANKING_SIZE - 1]?.score || 0);
     }
     
-    static getRank(score, type = 'overall') {
-        const rankings = this.getRankings(type);
+    static async getRank(score, type = 'overall') {
+        const rankings = await this.getRankings(type);
         let rank = 1;
         for (const entry of rankings) {
             if (score > entry.score) break;
@@ -1315,14 +1362,37 @@ class RankingManager {
         return rank;
     }
     
+    // ローカルストレージフォールバック（既存の機能）
+    static getLocalRankings(type = 'overall') {
+        const key = type === 'weekly' ? 'kongoTypingWeeklyRanking' : 'kongoTypingRanking';
+        const data = localStorage.getItem(key);
+        return data ? JSON.parse(data) : [];
+    }
+    
+    static saveLocalRankings(rankings, type = 'overall') {
+        const key = type === 'weekly' ? 'kongoTypingWeeklyRanking' : 'kongoTypingRanking';
+        localStorage.setItem(key, JSON.stringify(rankings));
+    }
+    
+    static addLocalRanking(entry, type = 'overall') {
+        const rankings = this.getLocalRankings(type);
+        rankings.push(entry);
+        rankings.sort((a, b) => b.score - a.score);
+        rankings.splice(MAX_RANKING_SIZE);
+        this.saveLocalRankings(rankings, type);
+        return rankings;
+    }
+    
     static checkWeeklyReset() {
-        const lastReset = localStorage.getItem(LAST_RESET_KEY);
+        // 週間ランキングのリセット（Firestoreでは手動管理またはCloud Functions使用）
+        const lastReset = localStorage.getItem('kongoTypingLastReset');
         const now = new Date();
         const oneWeek = 7 * 24 * 60 * 60 * 1000;
         
         if (!lastReset || (now.getTime() - parseInt(lastReset)) > oneWeek) {
-            localStorage.removeItem(WEEKLY_RANKING_KEY);
-            localStorage.setItem(LAST_RESET_KEY, now.getTime().toString());
+            localStorage.removeItem('kongoTypingWeeklyRanking');
+            localStorage.setItem('kongoTypingLastReset', now.getTime().toString());
+            console.log('📅 Weekly ranking reset check completed');
         }
     }
 }
@@ -1346,50 +1416,76 @@ function switchRankingTab(type) {
     displayRanking(type);
 }
 
-function displayRanking(type) {
-    const rankings = RankingManager.getRankings(type);
+async function displayRanking(type) {
     const container = elements.rankingList;
     
-    if (rankings.length === 0) {
+    // ローディング表示
+    container.innerHTML = `
+        <div class="ranking-empty">
+            <div class="empty-icon">⏳</div>
+            <div class="empty-message">ランキングを読み込み中...</div>
+        </div>
+    `;
+    
+    try {
+        const rankings = await RankingManager.getRankings(type);
+        
+        if (rankings.length === 0) {
+            container.innerHTML = `
+                <div class="ranking-empty">
+                    <div class="empty-icon">🏆</div>
+                    <div class="empty-message">まだランキングデータがありません</div>
+                    <div class="empty-subtitle">ゲームをプレイしてランキングに挑戦しよう！</div>
+                </div>
+            `;
+            return;
+        }
+        
+        container.innerHTML = rankings.map((entry, index) => {
+            const rank = index + 1;
+            const date = new Date(entry.date);
+            const difficultyName = DIFFICULTY_SETTINGS[entry.difficulty]?.name || entry.difficulty;
+            
+            return `
+                <div class="ranking-item rank-${rank} ${rank <= 3 ? 'top-3' : ''}">
+                    <div class="ranking-rank rank-${rank}">${rank}</div>
+                    <div class="ranking-info">
+                        <div class="ranking-name">${escapeHtml(entry.name)}</div>
+                        <div class="ranking-title-text" style="color: ${entry.title.color}">${entry.title.name}</div>
+                    </div>
+                    <div class="ranking-score">${entry.score}点</div>
+                </div>
+            `;
+        }).join('');
+        
+        console.log(`✅ ${type} ranking display updated with ${rankings.length} entries`);
+        
+    } catch (error) {
+        console.log('❌ ランキング表示エラー:', error);
         container.innerHTML = `
             <div class="ranking-empty">
-                <div class="empty-icon">🏆</div>
-                <div class="empty-message">まだランキングデータがありません</div>
-                <div class="empty-subtitle">ゲームをプレイしてランキングに挑戦しよう！</div>
+                <div class="empty-icon">❌</div>
+                <div class="empty-message">ランキングの読み込みに失敗しました</div>
+                <div class="empty-subtitle">しばらく時間をおいて再度お試しください</div>
             </div>
         `;
-        return;
     }
-    
-    container.innerHTML = rankings.map((entry, index) => {
-        const rank = index + 1;
-        const date = new Date(entry.date);
-        const difficultyName = DIFFICULTY_SETTINGS[entry.difficulty]?.name || entry.difficulty;
-        
-        return `
-            <div class="ranking-item rank-${rank} ${rank <= 3 ? 'top-3' : ''}">
-                <div class="ranking-rank rank-${rank}">${rank}</div>
-                <div class="ranking-info">
-                    <div class="ranking-name">${escapeHtml(entry.name)}</div>
-                    <div class="ranking-title-text" style="color: ${entry.title.color}">${entry.title.name}</div>
-                </div>
-                <div class="ranking-score">${entry.score}点</div>
-            </div>
-        `;
-    }).join('');
 }
 
-function checkAndShowRankingInput(score, title) {
-    const isOverallTop = RankingManager.isTopScore(score, 'overall');
-    const isWeeklyTop = RankingManager.isTopScore(score, 'weekly');
-    
-    if (isOverallTop || isWeeklyTop) {
-        const rank = Math.min(
-            RankingManager.getRank(score, 'overall'),
-            RankingManager.getRank(score, 'weekly')
-        );
+async function checkAndShowRankingInput(score, title) {
+    try {
+        const isOverallTop = await RankingManager.isTopScore(score, 'overall');
+        const isWeeklyTop = await RankingManager.isTopScore(score, 'weekly');
         
-        showNameInputModal(score, rank);
+        if (isOverallTop || isWeeklyTop) {
+            const overallRank = await RankingManager.getRank(score, 'overall');
+            const weeklyRank = await RankingManager.getRank(score, 'weekly');
+            const rank = Math.min(overallRank, weeklyRank);
+            
+            showNameInputModal(score, rank);
+        }
+    } catch (error) {
+        console.log('❌ ランキングチェックエラー:', error);
     }
 }
 
@@ -1405,7 +1501,7 @@ function showNameInputModal(score, rank) {
     }, 100);
 }
 
-function savePlayerRanking() {
+async function savePlayerRanking() {
     const name = elements.playerName.value.trim();
     if (!name) {
         alert('お名前を入力してください');
@@ -1416,19 +1512,39 @@ function savePlayerRanking() {
         playSound('./効果音/決定ボタンを押す10.mp3', 0.5);
     }
     
-    const earnedTitle = calculateTitle(gameState.score);
-    const entry = new RankingEntry(name, gameState.score, earnedTitle, gameState.difficulty);
+    // 保存中表示
+    const saveButton = elements.saveRankingButton;
+    const originalText = saveButton.innerHTML;
+    saveButton.innerHTML = '<span class="btn-text">保存中...</span>';
+    saveButton.disabled = true;
     
-    // 総合と週間の両方に追加
-    RankingManager.addRanking(entry, 'overall');
-    RankingManager.addRanking(entry, 'weekly');
-    
-    elements.nameInputModal.classList.add('hidden');
-    
-    // ランキング登録完了のフィードバック
-    setTimeout(() => {
-        alert(`ランキングに登録されました！\n${name}さん、おめでとうございます！`);
-    }, 100);
+    try {
+        const earnedTitle = calculateTitle(gameState.score);
+        const entry = new RankingEntry(name, gameState.score, earnedTitle, gameState.difficulty);
+        
+        // 総合と週間の両方に追加
+        await Promise.all([
+            RankingManager.addRanking(entry, 'overall'),
+            RankingManager.addRanking(entry, 'weekly')
+        ]);
+        
+        elements.nameInputModal.classList.add('hidden');
+        
+        // ランキング登録完了のフィードバック
+        setTimeout(() => {
+            alert(`ランキングに登録されました！\n${name}さん、おめでとうございます！`);
+        }, 100);
+        
+        console.log(`✅ Player ranking saved: ${name} - ${gameState.score}pts`);
+        
+    } catch (error) {
+        console.log('❌ ランキング保存エラー:', error);
+        alert('ランキングの保存に失敗しました。もう一度お試しください。');
+    } finally {
+        // ボタンを元に戻す
+        saveButton.innerHTML = originalText;
+        saveButton.disabled = false;
+    }
 }
 
 function skipRankingInput() {
