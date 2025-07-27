@@ -329,10 +329,10 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 10px;
-    min-width: 280px;
-    padding: 18px 35px;
-    font-size: 18px;
+    gap: 15px;
+    min-width: 490px;
+    padding: 32px 60px;
+    font-size: 32px;
     opacity: 0;
     animation: buttonFadeIn 1s ease-out 2.5s forwards, gradientShift 3s ease infinite 2.5s;
 }
@@ -355,7 +355,7 @@ body {
 }
 
 .btn-icon {
-    font-size: 24px;
+    font-size: 42px;
     filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
 }
 
@@ -420,23 +420,23 @@ body {
 .title-container {
     text-align: center;
     background: rgba(255, 255, 255, 0.95);
-    padding: 40px 50px 50px;
+    padding: 50px 60px 60px;
     border-radius: 25px;
     box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
     border: 3px solid #ff6b9d;
     position: absolute;
-    bottom: 15%;
+    bottom: 10%;
     left: 50%;
     transform: translateX(-50%);
     backdrop-filter: blur(10px);
-    min-width: 550px;
+    min-width: 650px;
     opacity: 0;
     animation: containerFadeIn 1s ease-out 1s forwards;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 20px;
+    gap: 25px;
 }
 
 @keyframes containerFadeIn {
@@ -1221,10 +1221,10 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 8px;
-    min-width: 200px;
-    padding: 14px 28px;
-    font-size: 16px;
+    gap: 12px;
+    min-width: 350px;
+    padding: 25px 50px;
+    font-size: 28px;
     position: relative;
     overflow: hidden;
 }
@@ -1369,8 +1369,24 @@ body {
     
     .title-container {
         padding: 40px 20px;
+        min-width: 500px;
+        bottom: 5%;
+    }
+    
+    .btn.primary {
         min-width: 400px;
-        bottom: 10%;
+        padding: 25px 45px;
+        font-size: 26px;
+    }
+    
+    .btn.secondary {
+        min-width: 300px;
+        padding: 20px 40px;
+        font-size: 22px;
+    }
+    
+    .btn-icon {
+        font-size: 36px;
     }
     
     .game-container {
@@ -1419,9 +1435,9 @@ body {
     }
     
     .title-container {
-        min-width: 320px;
+        min-width: 380px;
         padding: 30px 15px;
-        bottom: 5%;
+        bottom: 2%;
     }
     
     .title-subtitle {
@@ -1434,15 +1450,19 @@ body {
     }
     
     .btn.primary {
-        min-width: 240px;
-        padding: 15px 30px;
-        font-size: 16px;
+        min-width: 320px;
+        padding: 20px 35px;
+        font-size: 20px;
     }
     
     .btn.secondary {
-        min-width: 180px;
-        padding: 12px 24px;
-        font-size: 14px;
+        min-width: 260px;
+        padding: 16px 30px;
+        font-size: 18px;
+    }
+    
+    .btn-icon {
+        font-size: 28px;
     }
     
     .product-display {
