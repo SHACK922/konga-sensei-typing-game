@@ -1273,10 +1273,81 @@ body {
     }
 }
 
+/* ボタン行のレイアウト */
+.button-row {
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
 /* タイトル画面のランキングボタンに特別なアニメーション遅延 */
 #ranking-button {
     opacity: 0;
     animation: buttonFadeIn 1s ease-out 3s forwards, gradientShift 3s ease infinite 3s;
+}
+
+/* オーディオ切り替えボタン */
+.btn.audio-btn {
+    background: linear-gradient(45deg, #4a7c59, #66bb6a, #81c784, #a5d6a7);
+    background-size: 300% 300%;
+    color: #fff;
+    border: 3px solid rgba(74, 124, 89, 0.3);
+    box-shadow: 0 6px 20px rgba(74, 124, 89, 0.4);
+    animation: gradientShift 3s ease infinite;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    min-width: 200px;
+    padding: 18px 35px;
+    font-size: 18px;
+    position: relative;
+    overflow: hidden;
+    opacity: 0;
+    animation: buttonFadeIn 1s ease-out 3.5s forwards, gradientShift 3s ease infinite 3.5s;
+}
+
+.btn.audio-btn:hover {
+    transform: translateY(-5px) scale(1.05);
+    box-shadow: 0 15px 35px rgba(74, 124, 89, 0.6);
+    border-color: rgba(74, 124, 89, 0.6);
+}
+
+.btn.audio-btn:hover .btn-shine {
+    left: 100%;
+}
+
+.btn.audio-btn:active {
+    transform: translateY(-2px) scale(1.02);
+    transition: all 0.1s ease;
+}
+
+/* オーディオオフ状態 */
+.btn.audio-btn.audio-off {
+    background: linear-gradient(45deg, #c44536, #e57373, #ef5350, #f44336);
+    border-color: rgba(196, 69, 54, 0.3);
+    box-shadow: 0 6px 20px rgba(196, 69, 54, 0.4);
+}
+
+.btn.audio-btn.audio-off:hover {
+    box-shadow: 0 15px 35px rgba(196, 69, 54, 0.6);
+    border-color: rgba(196, 69, 54, 0.6);
+}
+
+/* オーディオボタンのキラン効果 */
+.btn.audio-btn::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+    transform: rotate(45deg);
+    animation: sparkle 3s ease-in-out infinite;
+    pointer-events: none;
 }
 
 @media (max-width: 768px) {
@@ -1389,6 +1460,17 @@ body {
         font-size: 36px;
     }
     
+    .button-row {
+        flex-direction: column;
+        gap: 15px;
+    }
+    
+    .btn.audio-btn {
+        min-width: 250px;
+        padding: 16px 30px;
+        font-size: 16px;
+    }
+    
     .game-container {
         padding: 20px;
         margin: 10px;
@@ -1463,6 +1545,17 @@ body {
     
     .btn-icon {
         font-size: 28px;
+    }
+    
+    .button-row {
+        flex-direction: column;
+        gap: 12px;
+    }
+    
+    .btn.audio-btn {
+        min-width: 200px;
+        padding: 14px 25px;
+        font-size: 14px;
     }
     
     .product-display {

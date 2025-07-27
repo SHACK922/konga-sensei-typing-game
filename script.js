@@ -177,7 +177,10 @@ const elements = {
     achievedScore: document.getElementById('achieved-score'),
     playerName: document.getElementById('player-name'),
     saveRankingButton: document.getElementById('save-ranking-button'),
-    skipRankingButton: document.getElementById('skip-ranking-button')
+    skipRankingButton: document.getElementById('skip-ranking-button'),
+    
+    // 音楽トグルボタン
+    audioToggleButton: document.getElementById('audio-toggle-button')
 };
 
 // 初期化
@@ -185,8 +188,19 @@ function init() {
     // 週間ランキングのリセットチェック
     RankingManager.checkWeeklyReset();
     
+    // 保存された音楽設定を読み込み
+    const savedAudioSetting = localStorage.getItem('kongoTypingAudioEnabled');
+    if (savedAudioSetting !== null) {
+        gameState.audioEnabled = savedAudioSetting === 'true';
+    }
+    
     // ユーザーインタラクションで音楽を有効化
     setupAudioActivation();
+    
+    // 音楽ボタンの表示状態を初期化
+    setTimeout(() => {
+        updateAudioButtonState();
+    }, 100);
     
     // ローディング画面を表示し、7秒後にタイトル画面に遷移
     showLoadingScreen();
@@ -227,6 +241,11 @@ function init() {
     }
     if (elements.skipRankingButton) {
         elements.skipRankingButton.addEventListener('click', skipRankingInput);
+    }
+    
+    // 音楽トグルボタンのイベントリスナー
+    if (elements.audioToggleButton) {
+        elements.audioToggleButton.addEventListener('click', toggleAudio);
     }
     
     // 難易度選択ボタンイベント
@@ -1558,6 +1577,52 @@ function escapeHtml(text) {
     const div = document.createElement('div');
     div.textContent = text;
     return div.innerHTML;
+}
+
+// 音楽トグル機能
+function toggleAudio() {
+    gameState.audioEnabled = !gameState.audioEnabled;
+    console.log('🎵 Audio toggled:', gameState.audioEnabled);
+    
+    // ローカルストレージに設定を保存
+    localStorage.setItem('kongoTypingAudioEnabled', gameState.audioEnabled.toString());
+    
+    if (!gameState.audioEnabled) {
+        // 音楽を無効にした場合、現在のBGMを停止
+        stopBGM();
+    } else {
+        // 音楽を有効にした場合、現在の画面に応じてBGMを再生
+        if (gameState.currentScreen === 'title') {
+            playOpeningSound();
+        } else if (gameState.currentScreen === 'game' && gameState.isGameRunning) {
+            playBGM('./効果音/任侠ゴリラ.mp3', 0.4, true);
+        } else if (gameState.currentScreen === 'result') {
+            playBGM('./効果音/リザルト.mp3', 0.4);
+        }
+    }
+    
+    // ボタンの表示を更新
+    updateAudioButtonState();
+}
+
+// 音楽ボタンの表示状態を更新
+function updateAudioButtonState() {
+    if (!elements.audioToggleButton) return;
+    
+    const icon = elements.audioToggleButton.querySelector('.btn-icon');
+    const text = elements.audioToggleButton.querySelector('.btn-text');
+    
+    if (gameState.audioEnabled) {
+        icon.textContent = '🔊';
+        text.textContent = '音楽ON';
+        elements.audioToggleButton.classList.remove('audio-off');
+        elements.audioToggleButton.classList.add('audio-on');
+    } else {
+        icon.textContent = '🔇';
+        text.textContent = '音楽OFF';
+        elements.audioToggleButton.classList.remove('audio-on');
+        elements.audioToggleButton.classList.add('audio-off');
+    }
 }
 
 // ページ読み込み時に初期化

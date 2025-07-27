@@ -20,3 +20,30 @@
         transform: translateX(-50%) translateY(-20px);
     }
 }
+
+/* 音楽トグルボタンのスタイル */
+.btn.audio-btn {
+    background: linear-gradient(135deg, #4a7c59 0%, #6fa573 100%);
+    box-shadow: 0 8px 25px rgba(74, 124, 89, 0.4);
+    border: 2px solid #3a6049;
+    transform: scale(0.5);
+    margin: -15px;
+}
+
+.btn.audio-btn:hover {
+    background: linear-gradient(135deg, #5a8c69 0%, #7fb583 100%);
+    box-shadow: 0 12px 35px rgba(74, 124, 89, 0.5);
+    transform: translateY(-3px) scale(0.52);
+}
+
+.btn.audio-btn.audio-off {
+    background: linear-gradient(135deg, #c44536 0%, #d65545 100%);
+    box-shadow: 0 8px 25px rgba(196, 69, 54, 0.4);
+    border: 2px solid #a63529;
+}
+
+.btn.audio-btn.audio-off:hover {
+    background: linear-gradient(135deg, #d45545 0%, #e66555 100%);
+    box-shadow: 0 12px 35px rgba(196, 69, 54, 0.5);
+    transform: translateY(-3px) scale(0.52);
+}
